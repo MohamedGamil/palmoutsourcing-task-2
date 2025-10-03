@@ -29,6 +29,11 @@ final class ProductUrl
         $this->url = $url;
     }
 
+    public static function make(string $url): self
+    {
+        return new self($url);
+    }
+
     public static function fromString(string $url): self
     {
         return new self($url);

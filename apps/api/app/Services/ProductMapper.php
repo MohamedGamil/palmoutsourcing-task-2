@@ -322,7 +322,7 @@ class ProductMapper implements ProductMapperInterface
         // Apply platform-specific price validation
         $this->validatePriceByPlatform($rawPrice->toFloat(), $platform);
 
-        return new Price($rawPrice->toFloat(), $normalizedCurrency);
+        return Price::make($rawPrice->toFloat(), $normalizedCurrency);
     }
 
     /**

@@ -44,6 +44,11 @@ final class Platform
         $this->value = $normalized;
     }
 
+    public static function make(string $value): self
+    {
+        return new self($value);
+    }
+
     public static function amazon(): self
     {
         return new self(self::AMAZON);

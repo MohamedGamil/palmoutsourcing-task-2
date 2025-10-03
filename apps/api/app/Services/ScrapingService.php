@@ -36,7 +36,7 @@ use Illuminate\Support\Facades\Log;
  * - REQ-INT-004: System SHALL use proxy rotation for all scraping requests
  * - REQ-ARCH-006: App layer SHALL implement services based on domain layer contracts
  */
-class GuzzleScrapper implements ScrapingServiceInterface
+class ScrapingService implements ScrapingServiceInterface
 {
     private ProxyServiceInterface $proxyService;
     private HttpClient $httpClient;

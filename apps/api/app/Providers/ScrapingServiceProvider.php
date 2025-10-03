@@ -8,7 +8,7 @@ use App\Facades\ProductMapper as ProductMapperFacade;
 use App\Facades\ScrapingOrchestrator as ScrapingOrchestratorFacade;
 use App\Facades\ScrapingService as ScrapingServiceFacade;
 use App\Facades\ProxyService as ProxyServiceFacade;
-use App\Services\GuzzleScrapper;
+use App\Services\ScrapingService;
 use App\Services\ProductMapper;
 use App\Services\ProxyService;
 use App\Services\ScrapingOrchestrator;
@@ -29,7 +29,7 @@ use Illuminate\Support\ServiceProvider;
 class ScrapingServiceProvider extends ServiceProvider
 {
     const PROXY_SERVICE = ProxyService::class;
-    const SCRAPING_SERVICE = GuzzleScrapper::class;
+    const SCRAPING_SERVICE = ScrapingService::class;
     const PRODUCT_MAPPER_SERVICE = ProductMapper::class;
     const SCRAPING_ORCHESTRATOR_SERVICE = ScrapingOrchestrator::class;
 
@@ -45,7 +45,7 @@ class ScrapingServiceProvider extends ServiceProvider
             );
         });
 
-        // Register GuzzleScrapper as singleton
+        // Register ScrapingService as singleton
         $this->app->singleton(ScrapingServiceInterface::class, function ($app) {
             return new (static::SCRAPING_SERVICE)(
                 $app->make(ProxyServiceInterface::class),

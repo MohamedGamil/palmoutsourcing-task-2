@@ -30,6 +30,11 @@ final class Price
         $this->amount = round($amount, self::PRECISION);
     }
 
+    public static function make(float $amount): self
+    {
+        return new self($amount);
+    }
+
     public static function fromFloat(float $amount): self
     {
         return new self($amount);

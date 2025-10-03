@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
  * Scraping Orchestrator Service
  * 
  * Orchestrates the complete scraping and mapping workflow by coordinating
- * between GuzzleScrapper and ProductMapper services.
+ * between ScrapingService and ProductMapper services.
  * 
  * This service demonstrates the complete integration of:
  * - Proxy service for request routing

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * Scraping Service Facade
  * 
- * Provides static access to the GuzzleScrapper service for convenient usage
+ * Provides static access to the ScrapingService service for convenient usage
  * throughout the application without explicit dependency injection.
  * 
  * @method static bool supportsPlatform(\Domain\Product\ValueObject\Platform $platform)
@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static array testPlatformScraping(\Domain\Product\ValueObject\Platform $platform)
  * @method static array getHealthStatus()
  * 
- * @see \App\Services\GuzzleScrapper
+ * @see \App\Services\ScrapingService
  */
 class ScrapingService extends Facade
 {

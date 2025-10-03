@@ -156,33 +156,23 @@ class AmazonScraper implements PlatformScraperInterface
      */
     private function fetchContent(ProductUrl $url, int $attempt): string
     {
-        $proxyConfig = $this->getProxyConfig();
-        
         Log::debug('[AMAZON-SCRAPER] Fetching content', [
             'url' => $url->toString(),
             'attempt' => $attempt,
-            'proxy' => $proxyConfig ? $proxyConfig['proxy'] : 'none',
+            'proxy_enabled' => $this->isProxyEnabled(),
         ]);
 
-        $client = $this->httpClient->timeout(30);
+        // Get HTTP client options with or without proxy based on configuration
+        $clientOptions = $this->getHttpClientOptions([
+            'headers' => [
+                'Sec-Fetch-Dest' => 'document',
+                'Sec-Fetch-Mode' => 'navigate',
+                'Sec-Fetch-Site' => 'none',
+                'Cache-Control' => 'max-age=0',
+            ]
+        ]);
 
-        if ($proxyConfig) {
-            $client = $client->withOptions($proxyConfig);
-        }
-
-        $response = $client->withHeaders([
-            'User-Agent' => $this->getRandomUserAgent(),
-            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-            'Accept-Language' => 'en-US,en;q=0.9',
-            'Accept-Encoding' => 'gzip, deflate',
-            'DNT' => '1',
-            'Connection' => 'keep-alive',
-            'Upgrade-Insecure-Requests' => '1',
-            'Sec-Fetch-Dest' => 'document',
-            'Sec-Fetch-Mode' => 'navigate',
-            'Sec-Fetch-Site' => 'none',
-            'Cache-Control' => 'max-age=0',
-        ])->get($url->toString());
+        $response = $this->httpClient->withOptions($clientOptions)->get($url->toString());
 
         if (!$response->successful()) {
             throw ScrapingException::httpError(
@@ -545,21 +535,7 @@ class AmazonScraper implements PlatformScraperInterface
         return $category;
     }
 
-    /**
-     * Get random user agent for Amazon
-     */
-    private function getRandomUserAgent(): string
-    {
-        $userAgents = [
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0',
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:89.0) Gecko/20100101 Firefox/89.0',
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.59',
-        ];
 
-        return $userAgents[array_rand($userAgents)];
-    }
 
     /**
      * Get the platform name this scraper handles
