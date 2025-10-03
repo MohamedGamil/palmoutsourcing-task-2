@@ -21,7 +21,8 @@
                 "description": "Product model",
                 "required": [
                     "title",
-                    "price"
+                    "price",
+                    "source_store"
                 ],
                 "properties": {
                     "id": {
@@ -33,6 +34,11 @@
                         "description": "Product title",
                         "type": "string",
                         "example": "Wireless Headphones"
+                    },
+                    "description": {
+                        "description": "Product description",
+                        "type": "string",
+                        "example": "High-quality wireless headphones with noise cancellation"
                     },
                     "price": {
                         "description": "Product price",
@@ -47,9 +53,11 @@
                         "example": 129.99
                     },
                     "rating": {
-                        "description": "Product rating",
+                        "description": "Product rating (1-5)",
                         "type": "number",
                         "format": "float",
+                        "maximum": 5,
+                        "minimum": 1,
                         "example": 4.5
                     },
                     "rating_count": {
@@ -66,6 +74,25 @@
                         "description": "Product image URL",
                         "type": "string",
                         "example": "https://example.com/images/product.jpg"
+                    },
+                    "source_store": {
+                        "description": "Source store",
+                        "type": "string",
+                        "enum": [
+                            "amazon",
+                            "jumia"
+                        ],
+                        "example": "amazon"
+                    },
+                    "store_category": {
+                        "description": "Store category",
+                        "type": "string",
+                        "example": "Electronics"
+                    },
+                    "store_url": {
+                        "description": "Product URL on source store",
+                        "type": "string",
+                        "example": "https://www.amazon.com/product/123"
                     },
                     "created_at": {
                         "description": "Creation timestamp",
