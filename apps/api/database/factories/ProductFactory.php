@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -18,12 +19,21 @@ class ProductFactory extends Factory
     {
         return [
             'title' => fake()->words(3, true),
+            'description' => fake()->paragraph(),
             'price' => fake()->randomFloat(2, 10, 1000),
             'list_price' => fake()->randomFloat(2, 10, 1200),
             'rating' => fake()->randomFloat(2, 1, 5),
             'rating_count' => fake()->numberBetween(0, 10000),
             'vendor_name' => fake()->company(),
             'image_url' => fake()->imageUrl(640, 480, 'products', true),
+            'source_store' => fake()->randomElement($this->supportedStores()),
+            'store_url' => fake()->url(),
+            'store_category' => fake()->word(),
         ];
+    }
+
+    private function supportedStores(): array
+    {
+        return Product::SUPPORTED_STORES;
     }
 }

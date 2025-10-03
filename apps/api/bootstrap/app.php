@@ -23,5 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Use custom API exception handler for standardized JSON responses
+        $exceptions->render(function (Throwable $e, $request) {
+            return \App\Exceptions\ApiExceptionHandler::handle($e, $request);
+        });
     })->create();
