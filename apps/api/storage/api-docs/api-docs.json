@@ -18,65 +18,63 @@
         "schemas": {
             "Product": {
                 "title": "Product",
-                "description": "Product model",
+                "description": "Product model for watching e-commerce products",
                 "required": [
                     "title",
                     "price",
-                    "source_store"
+                    "product_url",
+                    "platform"
                 ],
                 "properties": {
                     "id": {
                         "description": "Product ID",
                         "type": "integer",
+                        "readOnly": true,
                         "example": 1
                     },
                     "title": {
                         "description": "Product title",
                         "type": "string",
-                        "example": "Wireless Headphones"
-                    },
-                    "description": {
-                        "description": "Product description",
-                        "type": "string",
-                        "example": "High-quality wireless headphones with noise cancellation"
+                        "maxLength": 500,
+                        "example": "Sony WH-1000XM4 Wireless Headphones"
                     },
                     "price": {
                         "description": "Product price",
                         "type": "number",
                         "format": "float",
-                        "example": 99.99
-                    },
-                    "list_price": {
-                        "description": "Product list price",
-                        "type": "number",
-                        "format": "float",
-                        "example": 129.99
+                        "example": 349.99
                     },
                     "rating": {
-                        "description": "Product rating (1-5)",
+                        "description": "Product rating (0-5)",
                         "type": "number",
                         "format": "float",
                         "maximum": 5,
-                        "minimum": 1,
-                        "example": 4.5
+                        "minimum": 0,
+                        "example": 4.5,
+                        "nullable": true
                     },
                     "rating_count": {
                         "description": "Number of ratings",
                         "type": "integer",
-                        "example": 150
-                    },
-                    "vendor_name": {
-                        "description": "Vendor name",
-                        "type": "string",
-                        "example": "TechStore Inc."
+                        "minimum": 0,
+                        "example": 1250,
+                        "nullable": true
                     },
                     "image_url": {
                         "description": "Product image URL",
                         "type": "string",
-                        "example": "https://example.com/images/product.jpg"
+                        "maxLength": 2048,
+                        "example": "https://m.media-amazon.com/images/I/71o8Q5XJS5L._AC_SX679_.jpg",
+                        "nullable": true
                     },
-                    "source_store": {
-                        "description": "Source store",
+                    "product_url": {
+                        "description": "URL of the product being watched",
+                        "type": "string",
+                        "maxLength": 2048,
+                        "example": "https://www.amazon.com/dp/B0863TXGM3"
+                    },
+                    "platform": {
+                        "description": "Source platform (amazon or jumia)",
                         "type": "string",
                         "enum": [
                             "amazon",
@@ -84,27 +82,45 @@
                         ],
                         "example": "amazon"
                     },
-                    "store_category": {
-                        "description": "Store category",
+                    "platform_category": {
+                        "description": "Category from the platform",
                         "type": "string",
-                        "example": "Electronics"
+                        "maxLength": 255,
+                        "example": "Electronics",
+                        "nullable": true
                     },
-                    "store_url": {
-                        "description": "Product URL on source store",
+                    "last_scraped_at": {
+                        "description": "Last successful scrape timestamp",
                         "type": "string",
-                        "example": "https://www.amazon.com/product/123"
+                        "format": "date-time",
+                        "example": "2025-10-03T12:00:00Z",
+                        "nullable": true
+                    },
+                    "scrape_count": {
+                        "description": "Number of times product has been scraped",
+                        "type": "integer",
+                        "default": 0,
+                        "example": 15
+                    },
+                    "is_active": {
+                        "description": "Whether product is actively being watched",
+                        "type": "boolean",
+                        "default": true,
+                        "example": true
                     },
                     "created_at": {
                         "description": "Creation timestamp",
                         "type": "string",
                         "format": "date-time",
-                        "example": "2024-01-01T12:00:00Z"
+                        "readOnly": true,
+                        "example": "2025-10-01T12:00:00Z"
                     },
                     "updated_at": {
                         "description": "Last update timestamp",
                         "type": "string",
                         "format": "date-time",
-                        "example": "2024-01-01T12:00:00Z"
+                        "readOnly": true,
+                        "example": "2025-10-03T12:00:00Z"
                     }
                 },
                 "type": "object"

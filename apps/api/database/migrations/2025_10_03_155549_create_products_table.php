@@ -13,18 +13,20 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('title')->index();
-            $table->text('description')->nullable();
+            $table->string('title', 500)->index();
             $table->decimal('price', 10, 2)->default(0)->index();
-            $table->decimal('list_price', 10, 2)->default(0)->index();
-            $table->decimal('rating', 3, 2)->default(0)->index();
-            $table->unsignedInteger('rating_count')->default(0)->index();
-            $table->string('vendor_name')->nullable()->index();
-            $table->text('image_url')->nullable();
-            $table->string('source_store')->nullable()->index();
-            $table->string('store_category')->nullable()->index();
-            $table->text('store_url')->nullable();
+            $table->decimal('rating', 3, 2)->default(0);
+            $table->unsignedInteger('rating_count')->default(0);
+            $table->string('image_url', 500)->nullable();
+            $table->string('product_url', 500)->unique()->index();
+            $table->string('platform')->index();
+            $table->string('platform_category')->nullable();
+            $table->boolean('is_active')->default(true)->index();
+            $table->unsignedInteger('scrape_count')->default(0);
+            $table->timestamp('last_scraped_at')->nullable();
             $table->timestamps();
+
+            $table->unique(['product_url', 'platform'], 'unique_product_per_platform');
         });
     }
 
