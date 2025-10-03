@@ -6,7 +6,7 @@ use OpenApi\Annotations as OA;
 
 /**
  * @OA\Info(
- *     title="PalmOutsourcing Task API",
+ *     title="PalmOutsourcing Task (2) API",
  *     version="1.0.0",
  *     description="Laravel API for tasks (GET /tasks, POST /tasks)."
  * )
