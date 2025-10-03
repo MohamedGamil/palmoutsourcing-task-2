@@ -162,7 +162,7 @@ class ScrapeProductCommand extends Command
             ['Field', 'Value'],
             [
                 ['Title', $this->truncate($mappedData['title'], 60)],
-                ['Price', $mappedData['price'] . ' ' . $mappedData['currency']],
+                ['Price', $mappedData['price'] . ' ' . $mappedData['price_currency']],
                 ['Platform', ucfirst($mappedData['platform'])],
                 ['Platform ID', $mappedData['platform_id'] ?? 'N/A'],
                 ['Category', $mappedData['category'] ?? 'N/A'],

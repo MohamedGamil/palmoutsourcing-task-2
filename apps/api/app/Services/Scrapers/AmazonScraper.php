@@ -656,14 +656,14 @@ class AmazonScraper implements PlatformScraperInterface
     {
         $category = trim($category);
         $category = preg_replace('/\s+/', ' ', $category);
-        
+
         // Remove common prefixes/suffixes
         $category = preg_replace('/^(in\s+)?/i', '', $category);
         $category = preg_replace('/(\s+›.*)?$/', '', $category);
 
         $category = trim($category);
         $category = strlen($category) > 100 ? substr($category, 0, 100) : $category;
-        
+
         return str_contains($category, 'Window.navmet.tmp') ? null : $category;
     }
 

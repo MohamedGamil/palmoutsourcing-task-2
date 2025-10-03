@@ -123,7 +123,7 @@ class ProductMapper implements ProductMapperInterface
                 'id' => $productId,
                 'title' => $title,
                 'price' => $price->toFloat(),
-                'currency' => $scrapedData->getPriceCurrency(),
+                'price_currency' => $scrapedData->getPriceCurrency(),
                 'category' => $category,
                 'platform' => $platform->toString(),
                 'platform_id' => $scrapedData->getPlatformId(),
@@ -139,7 +139,7 @@ class ProductMapper implements ProductMapperInterface
                 'product_id' => $productId,
                 'title' => $title,
                 'price' => $price->toFloat(),
-                'currency' => $scrapedData->getPriceCurrency(),
+                'price_currency' => $scrapedData->getPriceCurrency(),
                 'category' => $category,
                 'platform' => $platform->toString(),
             ]);
