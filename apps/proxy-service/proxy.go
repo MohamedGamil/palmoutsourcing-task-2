@@ -102,6 +102,9 @@ func parseProxyURL(proxyURL string) *ProxyInfo {
 	} else if strings.HasPrefix(proxyURL, "https://") {
 		info.Protocol = "https"
 		proxyURL = strings.TrimPrefix(proxyURL, "https://")
+	} else if strings.HasPrefix(proxyURL, "socks4://") {
+		info.Protocol = "socks4"
+		proxyURL = strings.TrimPrefix(proxyURL, "socks4://")
 	} else if strings.HasPrefix(proxyURL, "socks5://") {
 		info.Protocol = "socks5"
 		proxyURL = strings.TrimPrefix(proxyURL, "socks5://")
@@ -162,6 +165,19 @@ func (p *ProxyPool) GetNextProxy() (*ProxyInfo, error) {
 	return nil, fmt.Errorf("no healthy proxies available (checked %d proxies)", maxAttempts)
 }
 
+// getRetryLimit retrieves the retry limit from environment variable or defaults to 3
+func getRetryLimit() int {
+	retryLimit := 3 // Default
+
+	if val := os.Getenv("PROXY_SERVICE_MAX_RETRIES"); val != "" {
+		if n, err := fmt.Sscanf(val, "%d", &retryLimit); err == nil && n == 1 && retryLimit > 0 {
+			return retryLimit
+		}
+	}
+
+	return retryLimit
+}
+
 // checkProxyHealth validates if a proxy is reachable and functional
 // REQ-GO-004: Validates proxy availability
 func (p *ProxyPool) checkProxyHealth(proxy *ProxyInfo) bool {
@@ -182,7 +198,7 @@ func (p *ProxyPool) checkProxyHealth(proxy *ProxyInfo) bool {
 			proxy.Host, proxy.Port, proxy.FailureCount, err)
 
 		// REQ-GO-008: Remove non-functional proxies (mark as unhealthy after 3 failures)
-		if proxy.FailureCount >= 3 {
+		if proxy.FailureCount >= getRetryLimit() {
 			proxy.IsHealthy = false
 			log.Printf("[HEALTH] Proxy %s:%s marked as UNHEALTHY after %d consecutive failures",
 				proxy.Host, proxy.Port, proxy.FailureCount)
@@ -200,15 +216,28 @@ func (p *ProxyPool) checkProxyHealth(proxy *ProxyInfo) bool {
 	return true
 }
 
+func getHealthCheckInterval() time.Duration {
+	interval := 60 // Default interval in seconds
+
+	if val := os.Getenv("PROXY_SERVICE_HEALTHCHECK_INTERVAL"); val != "" {
+		if n, err := fmt.Sscanf(val, "%d", &interval); err == nil && n == 1 && interval > 0 {
+			return time.Duration(interval)
+		}
+	}
+
+	return time.Duration(interval)
+}
+
 // startHealthChecking starts background health checking for all proxies
 // REQ-GO-004: Validates proxy availability before rotation
 // REQ-GO-008: Removes non-functional proxies from pool
 func (p *ProxyPool) startHealthChecking() {
 	// Health check interval: 60 seconds
-	p.healthTicker = time.NewTicker(60 * time.Second)
+	healthCheckInterval := getHealthCheckInterval()
+	p.healthTicker = time.NewTicker(healthCheckInterval * time.Second)
 
 	go func() {
-		log.Println("[HEALTH] Health checking service started (interval: 60s)")
+		log.Println("[HEALTH] Health checking service started (interval: ", healthCheckInterval, "seconds)")
 
 		// Run initial health check
 		p.runHealthCheck()
@@ -374,6 +403,18 @@ func getPortFromEnv() string {
 	return port
 }
 
+func getRateLimit() int {
+	rateLimit := 120 // Default rate limit
+
+	if val := os.Getenv("PROXY_SERVICE_RATE_LIMIT"); val != "" {
+		if n, err := fmt.Sscanf(val, "%d", &rateLimit); err == nil && n == 1 && rateLimit > 0 {
+			return rateLimit
+		}
+	}
+
+	return rateLimit
+}
+
 // rateLimitMiddleware implements basic rate limiting
 // REQ-GO-API-003: Implements rate limiting
 func rateLimitMiddleware(next http.HandlerFunc) http.HandlerFunc {
@@ -382,8 +423,7 @@ func rateLimitMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		mu       sync.Mutex
 	)
 
-	// Allow 120 requests per minute per IP
-	limit := 120
+	limit := getRateLimit()
 	window := time.Minute
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -433,6 +473,18 @@ func loggingMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+func getServiceTimeout() time.Duration {
+	timeout := 10 // Default timeout in seconds
+
+	if val := os.Getenv("PROXY_SERVICE_REQUEST_TIMEOUT"); val != "" {
+		if n, err := fmt.Sscanf(val, "%d", &timeout); err == nil && n == 1 && timeout > 0 {
+			return time.Duration(timeout)
+		}
+	}
+
+	return time.Duration(timeout)
+}
+
 func main() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
 	log.Println("=== Proxy Management Service ===")
@@ -478,6 +530,8 @@ func main() {
 
 	// REQ-GO-API-004: Service runs on configurable port
 	port := getPortFromEnv()
+	serviceTimeout := getServiceTimeout()
+	rateLimit := getRateLimit()
 	addr := fmt.Sprintf(":%s", port)
 
 	log.Printf("[SERVER] Starting Proxy Management Service on port %s", port)
@@ -485,12 +539,12 @@ func main() {
 	log.Printf("[SERVER]   - GET /proxy/next  : Get next available proxy")
 	log.Printf("[SERVER]   - GET /proxies     : List all proxies")
 	log.Printf("[SERVER]   - GET /health      : Health check")
-	log.Printf("[SERVER] Rate limit: 60 requests/minute per IP")
+	log.Printf("[SERVER] Rate limit: %d requests/minute per IP", rateLimit)
 
 	server := &http.Server{
 		Addr:         addr,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  serviceTimeout * time.Second,
+		WriteTimeout: serviceTimeout * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
 
