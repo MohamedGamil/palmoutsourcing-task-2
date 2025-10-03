@@ -15,6 +15,8 @@ use OpenApi\Annotations as OA;
  *     url=L5_SWAGGER_CONST_HOST,
  *     description="Local dev"
  * )
+ *
+ * @OA\PathItem(path="/api")
  */
 class OpenApi
 {
