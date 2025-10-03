@@ -233,28 +233,88 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-PERF-001:** API response time SHALL be under 500ms for product listing
 - **REQ-PERF-002:** Frontend page load time SHALL be under 2 seconds
 - **REQ-PERF-003:** Scraping service SHALL handle rate limiting
+- **REQ-PERF-004:** System SHALL implement caching for frequently accessed data to improve performance
+- **REQ-PERF-005:** Database queries SHALL utilize proper indexing for optimal performance
+- **REQ-PERF-006:** API responses SHALL be cached using Redis or similar caching mechanism
+- **REQ-PERF-007:** Cache invalidation SHALL occur on data updates
 
 ### 4.2 Security
 - **REQ-SEC-001:** API SHALL validate all input data
 - **REQ-SEC-002:** System SHALL prevent SQL injection attacks
 - **REQ-SEC-003:** Sensitive configuration SHALL use environment variables
 - **REQ-SEC-004:** API SHALL implement CORS policy
+- **REQ-SEC-005:** All environment variables SHALL be documented with examples
+- **REQ-SEC-006:** Secrets and API keys SHALL never be committed to version control
+- **REQ-SEC-007:** System SHALL implement input sanitization for all user inputs
 
 ### 4.3 Reliability
 - **REQ-REL-001:** System SHALL handle network failures gracefully
 - **REQ-REL-002:** Database connections SHALL use connection pooling
-- **REQ-REL-003:** Services SHALL implement error logging
+- **REQ-REL-003:** Services SHALL implement comprehensive error logging
+- **REQ-REL-004:** System SHALL log significant events for monitoring and debugging
+- **REQ-REL-005:** Error logs SHALL include timestamp, context, and stack trace
+- **REQ-REL-006:** System SHALL implement retry mechanisms for failed operations
+- **REQ-REL-007:** Critical errors SHALL be logged with appropriate severity levels
 
 ### 4.4 Maintainability
 - **REQ-MAINT-001:** Code SHALL follow PSR-12 standards (PHP)
 - **REQ-MAINT-002:** Code SHALL include inline documentation
 - **REQ-MAINT-003:** Project SHALL include README with setup instructions
-- **REQ-MAINT-004:** Configuration SHALL be externalized
+- **REQ-MAINT-004:** Configuration SHALL be externalized using environment variables
+- **REQ-MAINT-005:** System SHALL maintain clear separation of concerns between domain and app layers
+- **REQ-MAINT-006:** Domain layer SHALL remain independent of any framework or external libraries
+- **REQ-MAINT-007:** Business logic SHALL be isolated from implementation details
+- **REQ-MAINT-008:** Code SHALL facilitate easier testing and maintenance
+- **REQ-MAINT-009:** System SHALL generate comprehensive API documentation using OpenAPI/Swagger
+- **REQ-MAINT-010:** API documentation SHALL be automatically generated from code annotations
+- **REQ-MAINT-011:** Documentation SHALL be accessible via dedicated API documentation endpoint
 
 ### 4.5 Scalability
 - **REQ-SCALE-001:** Database schema SHALL support indexing
 - **REQ-SCALE-002:** API SHALL support pagination
 - **REQ-SCALE-003:** Proxy pool SHALL be expandable
+- **REQ-SCALE-004:** Application SHALL be designed to handle increased load
+- **REQ-SCALE-005:** System SHALL support horizontal scaling through stateless design
+- **REQ-SCALE-006:** Background jobs SHALL use queue system for asynchronous processing
+- **REQ-SCALE-007:** Domain and app layers SHALL evolve independently
+- **REQ-SCALE-008:** Architecture SHALL support microservices extraction if needed
+
+### 4.6 Architecture and Design Principles
+- **REQ-ARCH-001:** System SHALL implement Domain-Driven Design (DDD) principles
+- **REQ-ARCH-002:** Domain layer SHALL contain abstract definitions of business logic
+- **REQ-ARCH-003:** Domain layer SHALL include entities and value types
+- **REQ-ARCH-004:** App layer SHALL contain concrete implementations of business logic
+- **REQ-ARCH-005:** App layer SHALL implement repositories for data access based on domain layer
+- **REQ-ARCH-006:** App layer SHALL implement services based on domain layer contracts
+- **REQ-ARCH-007:** App layer SHALL implement use-cases for application logic
+- **REQ-ARCH-008:** Controllers SHALL utilize use-cases and remain thin
+- **REQ-ARCH-009:** Request classes SHALL handle HTTP request validation and authorization
+- **REQ-ARCH-010:** Resource classes SHALL handle HTTP response formatting
+- **REQ-ARCH-011:** Jobs SHALL handle background processing tasks
+- **REQ-ARCH-012:** Policies SHALL implement authorization logic
+- **REQ-ARCH-013:** Custom validation rules SHALL be implemented as separate Rule classes
+- **REQ-ARCH-014:** Custom exceptions SHALL be implemented for domain-specific errors
+- **REQ-ARCH-015:** Service providers SHALL configure app layer dependencies
+
+### 4.7 Testability
+- **REQ-TEST-001:** Domain logic SHALL be testable in isolation without framework dependencies
+- **REQ-TEST-002:** Business logic isolation SHALL facilitate unit testing
+- **REQ-TEST-003:** Use-cases SHALL be testable independently of HTTP layer
+- **REQ-TEST-004:** Repositories SHALL use interfaces for easy mocking in tests
+- **REQ-TEST-005:** Services SHALL use dependency injection for testability
+
+### 4.8 Reusability
+- **REQ-REUSE-001:** Domain logic SHALL be reusable across different parts of the application
+- **REQ-REUSE-002:** Domain logic SHALL be portable to different applications
+- **REQ-REUSE-003:** Business rules SHALL be centralized and not duplicated
+- **REQ-REUSE-004:** Common functionality SHALL be abstracted into reusable components
+
+### 4.9 Configuration Management
+- **REQ-CONFIG-001:** All configuration SHALL use environment variables
+- **REQ-CONFIG-002:** System SHALL provide .env.example file with all required variables
+- **REQ-CONFIG-003:** Configuration variables SHALL be documented with purpose and format
+- **REQ-CONFIG-004:** Default values SHALL be provided for non-sensitive configuration
+- **REQ-CONFIG-005:** Environment-specific settings SHALL be clearly separated
 
 ---
 
@@ -280,7 +340,123 @@ The system is a standalone web application that scrapes product data from eComme
 └─────────────────┘
 ```
 
-### 5.2 Technology Stack
+### 5.2 Backend Architectural Layers
+
+The Laravel backend follows a Domain-Driven Design (DDD) approach with clear separation between domain and application layers:
+
+#### 5.2.1 Domain Layer (Framework-Independent)
+The domain layer contains abstract definitions of business logic and is completely independent of Laravel or any external framework.
+
+**Components:**
+- **Entities:** Core business objects (e.g., Product entity with business rules)
+- **Value Objects:** Immutable objects representing domain concepts (e.g., Price, ProductUrl, Platform)
+- **Repository Interfaces:** Contracts defining data access operations
+- **Service Interfaces:** Contracts for domain services
+- **Domain Events:** Events representing business occurrences
+- **Domain Exceptions:** Business rule violations
+
+**Characteristics:**
+- No framework dependencies
+- Pure PHP classes and interfaces
+- Contains only business logic
+- Highly testable in isolation
+- Reusable across different applications
+
+#### 5.2.2 Application Layer (Framework-Specific)
+The application layer provides concrete implementations and orchestrates the domain layer using Laravel framework.
+
+**Components:**
+
+**a) Repositories**
+- Concrete implementations of domain repository interfaces
+- Uses Eloquent ORM for data persistence
+- Translates between domain entities and database models
+- Example: `EloquentProductRepository implements ProductRepositoryInterface`
+
+**b) Services**
+- Concrete implementations of domain service interfaces
+- Coordinates multiple repositories or external services
+- Example: `ProductScrapingService implements ScrapingServiceInterface`
+
+**c) Use Cases**
+- Application-specific business logic
+- Orchestrates domain entities, services, and repositories
+- Implements specific user stories or features
+- Examples: `CreateProductUseCase`, `UpdateProductPriceUseCase`, `BulkScrapeProductsUseCase`
+
+**d) Controllers**
+- HTTP request handlers
+- Thin layer that delegates to use cases
+- Handles HTTP-specific concerns (request/response)
+- Does not contain business logic
+
+**e) Request Classes (Form Requests)**
+- HTTP request validation
+- Authorization logic
+- Input sanitization
+- Example: `CreateProductRequest`, `UpdateProductRequest`
+
+**f) Resources (API Resources)**
+- HTTP response formatting
+- Data transformation for API responses
+- Consistent JSON structure
+- Example: `ProductResource`, `ProductCollection`
+
+**g) Jobs**
+- Background processing tasks
+- Asynchronous operations
+- Queue-based processing
+- Example: `ScrapeProductJob`, `UpdateProductPricesJob`
+
+**h) Policies**
+- Authorization logic
+- Permission checks
+- Access control rules
+- Example: `ProductPolicy`
+
+**i) Rules**
+- Custom validation rules
+- Reusable validation logic
+- Example: `ValidAmazonUrl`, `ValidJumiaUrl`
+
+**j) Exceptions**
+- Custom exception handling
+- Application-specific errors
+- Example: `ProductNotFoundException`, `ScrapingFailedException`
+
+**k) Providers (Service Providers)**
+- Dependency injection configuration
+- Service binding
+- Application bootstrapping
+- Example: `DomainServiceProvider`, `RepositoryServiceProvider`
+
+#### 5.2.3 Layer Interaction Flow
+
+```
+HTTP Request
+     ↓
+Controller (thin)
+     ↓
+Use Case (orchestration)
+     ↓
+Domain Service (business logic)
+     ↓
+Repository (data access)
+     ↓
+Database
+```
+
+**Example Flow: Creating a Product**
+1. **Controller** receives HTTP request
+2. **Request** validates and authorizes input
+3. **Controller** calls **Use Case** (CreateProductUseCase)
+4. **Use Case** uses **Domain Service** (ScrapingService) to scrape product
+5. **Domain Service** uses **Repository** to check for duplicates
+6. **Use Case** creates **Domain Entity** (Product)
+7. **Repository** persists entity to database
+8. **Controller** returns **Resource** formatted response
+
+### 5.3 Technology Stack
 - **Backend:** PHP 8.x, Laravel 10.x, Guzzle, MySQL 8.x, Laravel Task Scheduler, Laravel Queues
 - **Frontend:** Node.js, Next.js 13+, React 18+
 - **Microservice:** Golang 1.20+
@@ -545,10 +721,16 @@ Product {
 - **REQ-DEL-005:** Environment configuration examples
 
 ### 9.2 Documentation Deliverables
-- **REQ-DOC-001:** README.md with setup instructions
-- **REQ-DOC-002:** Installation steps for each component
-- **REQ-DOC-003:** API documentation
-- **REQ-DOC-004:** Environment variable documentation
+- **REQ-DOC-001:** README.md with comprehensive setup instructions
+- **REQ-DOC-002:** Installation steps for each component (Laravel, Next.js, Golang)
+- **REQ-DOC-003:** OpenAPI/Swagger documentation for all API endpoints
+- **REQ-DOC-004:** Swagger UI accessible at `/api/docs` endpoint
+- **REQ-DOC-005:** Environment variable documentation with examples
+- **REQ-DOC-006:** Architecture documentation explaining domain and app layers
+- **REQ-DOC-007:** Code comments and inline documentation
+- **REQ-DOC-008:** Database schema documentation
+- **REQ-DOC-009:** API authentication and authorization guide
+- **REQ-DOC-010:** Deployment and configuration guide
 
 ### 9.3 Submission Format
 - **REQ-SUB-001:** GitHub repository OR ZIP file
@@ -563,22 +745,100 @@ Product {
 
 ## 10. Testing Requirements
 
-### 10.1 Backend Testing
-- **REQ-TEST-001:** Unit tests for Product model
-- **REQ-TEST-002:** Integration tests for API endpoints
-- **REQ-TEST-003:** Tests for scraping service
+### 10.1 Domain Layer Testing
+- **REQ-TEST-001:** Unit tests for domain entities (Product entity)
+- **REQ-TEST-002:** Unit tests for value objects (Price, ProductUrl, Platform)
+- **REQ-TEST-003:** Tests for domain business rules and validation
+- **REQ-TEST-004:** Domain tests SHALL be independent of framework
+- **REQ-TEST-005:** Domain tests SHALL not require database or external dependencies
 
-### 10.2 Frontend Testing
-- **REQ-TEST-004:** Component rendering tests
-- **REQ-TEST-005:** API integration tests
+### 10.2 Application Layer Testing
+- **REQ-TEST-006:** Unit tests for use cases with mocked dependencies
+- **REQ-TEST-007:** Unit tests for repositories with in-memory or test database
+- **REQ-TEST-008:** Unit tests for services with mocked external dependencies
+- **REQ-TEST-009:** Integration tests for repository implementations
+- **REQ-TEST-010:** Tests for custom validation rules
+- **REQ-TEST-011:** Tests for custom exceptions handling
 
-### 10.3 Golang Service Testing
-- **REQ-TEST-006:** Unit tests for proxy rotation logic
-- **REQ-TEST-007:** API endpoint tests
+### 10.3 API Testing
+- **REQ-TEST-012:** Feature tests for all API endpoints
+- **REQ-TEST-013:** Tests for request validation (CreateProductRequest, UpdateProductRequest)
+- **REQ-TEST-014:** Tests for API resource formatting (ProductResource)
+- **REQ-TEST-015:** Tests for authentication and authorization (Policies)
+- **REQ-TEST-016:** Tests for error responses and status codes
+- **REQ-TEST-017:** Tests for pagination and filtering
+
+### 10.4 Background Jobs Testing
+- **REQ-TEST-018:** Unit tests for job classes (ScrapeProductJob)
+- **REQ-TEST-019:** Tests for job failure handling and retry logic
+- **REQ-TEST-020:** Tests for scheduled tasks
+
+### 10.5 Frontend Testing
+- **REQ-TEST-021:** Component rendering tests
+- **REQ-TEST-022:** API integration tests
+- **REQ-TEST-023:** User interaction tests
+
+### 10.6 Golang Service Testing
+- **REQ-TEST-024:** Unit tests for proxy rotation logic
+- **REQ-TEST-025:** API endpoint tests
+- **REQ-TEST-026:** Concurrent request handling tests
+
+### 10.7 Testing Standards
+- **REQ-TEST-027:** Code coverage SHALL be minimum 70% for critical paths
+- **REQ-TEST-028:** All tests SHALL be automated and runnable via CI/CD
+- **REQ-TEST-029:** Tests SHALL follow AAA pattern (Arrange, Act, Assert)
+- **REQ-TEST-030:** Test names SHALL clearly describe what is being tested
 
 ---
 
-## 11. Installation and Setup
+## 11. Logging and Monitoring Requirements
+
+### 11.1 Event Logging
+- **REQ-LOG-001:** System SHALL log all significant application events
+- **REQ-LOG-002:** Logs SHALL include timestamp, severity level, and context
+- **REQ-LOG-003:** Log levels SHALL include: DEBUG, INFO, WARNING, ERROR, CRITICAL
+- **REQ-LOG-004:** Product creation, update, and deletion events SHALL be logged
+- **REQ-LOG-005:** Scraping attempts (success and failure) SHALL be logged
+- **REQ-LOG-006:** Background job execution SHALL be logged
+- **REQ-LOG-007:** API request/response cycles SHALL be logged (configurable)
+
+### 11.2 Error Logging
+- **REQ-LOG-008:** All errors and exceptions SHALL be logged with full stack trace
+- **REQ-LOG-009:** HTTP errors (4xx, 5xx) SHALL be logged with request details
+- **REQ-LOG-010:** Database errors SHALL be logged with query context
+- **REQ-LOG-011:** External service failures (scraping, proxy service) SHALL be logged
+- **REQ-LOG-012:** Validation errors SHALL be logged at appropriate level
+- **REQ-LOG-013:** Authentication and authorization failures SHALL be logged
+
+### 11.3 Performance Monitoring
+- **REQ-MON-001:** Slow queries (>100ms) SHALL be logged
+- **REQ-MON-002:** API response times SHALL be tracked and logged
+- **REQ-MON-003:** Scraping duration SHALL be tracked per product
+- **REQ-MON-004:** Queue processing times SHALL be monitored
+- **REQ-MON-005:** Cache hit/miss rates SHALL be tracked
+
+### 11.4 Business Metrics Logging
+- **REQ-LOG-014:** Product watch count SHALL be tracked
+- **REQ-LOG-015:** Successful vs failed scraping attempts SHALL be logged
+- **REQ-LOG-016:** Platform distribution (Amazon vs Jumia) SHALL be tracked
+- **REQ-LOG-017:** Active vs inactive products SHALL be monitored
+
+### 11.5 Log Management
+- **REQ-LOG-018:** Logs SHALL be stored in structured format (JSON recommended)
+- **REQ-LOG-019:** Log rotation SHALL be configured to prevent disk space issues
+- **REQ-LOG-020:** Logs SHALL be retained for minimum 30 days
+- **REQ-LOG-021:** Critical logs SHALL be easily searchable and filterable
+- **REQ-LOG-022:** Log files SHALL be organized by date and severity
+
+### 11.6 Debugging Support
+- **REQ-DEBUG-001:** Development environment SHALL support detailed debug logging
+- **REQ-DEBUG-002:** Debug mode SHALL log request/response payloads
+- **REQ-DEBUG-003:** Database query logging SHALL be available in debug mode
+- **REQ-DEBUG-004:** Debug logs SHALL NOT be enabled in production by default
+
+---
+
+## 12. Installation and Setup
 
 ### 11.1 Prerequisites
 - PHP 8.x with Composer
