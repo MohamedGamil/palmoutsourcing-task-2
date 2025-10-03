@@ -73,6 +73,26 @@ final class ProductUrl
     }
 
     /**
+     * Detect platform from URL
+     * 
+     * @return Platform
+     * @throws InvalidProductUrlException if platform cannot be detected
+     */
+    public function detectPlatform(): Platform
+    {
+        $supportedPlatforms = Platform::getSupportedPlatforms();
+        
+        foreach ($supportedPlatforms as $platformName) {
+            $platform = Platform::fromString($platformName);
+            if ($platform->matchesUrl($this->url)) {
+                return $platform;
+            }
+        }
+
+        throw InvalidProductUrlException::unsupportedPlatform($this->url);
+    }
+
+    /**
      * Get the domain from the URL
      */
     public function getDomain(): string

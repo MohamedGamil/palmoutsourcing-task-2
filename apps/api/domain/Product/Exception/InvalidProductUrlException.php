@@ -40,4 +40,9 @@ final class InvalidProductUrlException extends DomainException
     {
         return new self("Product URL '{$url}' is missing a hostname.");
     }
+
+    public static function unsupportedPlatform(string $url): self
+    {
+        return new self("Unable to detect supported platform from URL: '{$url}'");
+    }
 }

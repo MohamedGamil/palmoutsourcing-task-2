@@ -38,4 +38,35 @@ interface ScrapingServiceInterface
      * @throws UnsupportedPlatformException
      */
     public function getScraperForPlatform(Platform $platform): PlatformScraperInterface;
+
+    /**
+     * Test scraping functionality for a platform
+     * 
+     * @param Platform $platform
+     * @return array Array of test results (success or error details)
+     */
+    public function testPlatformScraping(Platform $platform): array;
+
+
+    /**
+     * Get service health information
+     * 
+     * @return array
+     */
+    public function getHealthStatus(): array;
+
+
+    /**
+     * Get scraping statistics
+     * 
+     * @return array
+     */
+    public function getStatistics(): array;
+
+    /**
+     * Get list of supported platforms
+     * 
+     * @return array
+     */
+    public function getSupportedPlatforms(): array;
 }

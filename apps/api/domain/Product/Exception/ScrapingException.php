@@ -35,4 +35,30 @@ final class ScrapingException extends DomainException
     {
         return new self("No healthy proxies available for scraping.");
     }
+
+    public static function allAttemptsFailed(string $url, int $attempts, string $lastError): self
+    {
+        return new self("All {$attempts} scraping attempts failed for URL '{$url}'. Last error: {$lastError}");
+    }
+
+    public static function httpError(string $url, int $statusCode, string $response): self
+    {
+        $truncatedResponse = strlen($response) > 200 ? substr($response, 0, 200) . '...' : $response;
+        return new self("HTTP {$statusCode} error for URL '{$url}'. Response: {$truncatedResponse}");
+    }
+
+    public static function emptyResponse(string $url): self
+    {
+        return new self("Empty response received from URL: {$url}");
+    }
+
+    public static function blocked(string $url, string $reason): self
+    {
+        return new self("Scraping blocked for URL '{$url}': {$reason}");
+    }
+
+    public static function dataExtractionFailed(string $url, string $reason): self
+    {
+        return new self("Failed to extract data from URL '{$url}': {$reason}");
+    }
 }
