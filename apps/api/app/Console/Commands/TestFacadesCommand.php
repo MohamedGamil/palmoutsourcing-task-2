@@ -21,7 +21,7 @@ class TestFacadesCommand extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'facades:test 
+    protected $signature = 'scrape:facades 
                           {--service= : Test specific service facade (scraping, mapper, orchestrator, proxy)}
                           {--all : Test all facades}';
 

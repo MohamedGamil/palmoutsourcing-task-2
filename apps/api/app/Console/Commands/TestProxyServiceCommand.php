@@ -18,7 +18,7 @@ class TestProxyServiceCommand extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'proxy:test 
+    protected $signature = 'scrape:proxy 
                            {--next : Get next proxy only}
                            {--all : Get all proxies}
                            {--status : Get service status}

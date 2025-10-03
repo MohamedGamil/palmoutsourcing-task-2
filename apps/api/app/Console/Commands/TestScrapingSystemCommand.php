@@ -21,7 +21,7 @@ class TestScrapingSystemCommand extends Command
     /**
      * The name and signature of the console command.
      */
-    protected $signature = 'scraping:test 
+    protected $signature = 'scrape:test 
                           {--platform= : Test specific platform (amazon, jumia)}
                           {--url= : Test specific URL}
                           {--health : Check service health status}
