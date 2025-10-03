@@ -164,12 +164,18 @@ class JumiaScraper implements PlatformScraperInterface
         // Get HTTP client options with or without proxy based on configuration
         $clientOptions = $this->getHttpClientOptions([
             'headers' => [
-                'Accept-Language' => 'en-US,en;q=0.9,ar;q=0.8',
+                'Accept-Language' => 'en-GB,en;q=0.9,en-US;q=0.8,ar;q=0.7',
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'Referer' => 'https://www.jumia.com.eg/?srsltid=0',
                 'Sec-Fetch-Dest' => 'document',
                 'Sec-Fetch-Mode' => 'navigate',
                 'Sec-Fetch-Site' => 'none',
+                'Sec-Fetch-User' => '?1',
                 'Cache-Control' => 'max-age=0',
-            ]
+                'Upgrade-Insecure-Requests' => '1',
+            ],
+            'allow_redirects' => true,
+            'http_errors' => false, // Don't throw on 4xx/5xx
         ]);
 
         $response = $this->httpClient->withOptions($clientOptions)->get($url->toString());
@@ -188,12 +194,31 @@ class JumiaScraper implements PlatformScraperInterface
             throw ScrapingException::emptyResponse($url->toString());
         }
 
-        // Check for Jumia blocking or errors
+        // Check for Jumia blocking or errors - look for more specific patterns
         if (str_contains($content, 'Access denied') ||
             str_contains($content, 'Blocked') ||
-            str_contains($content, 'Too Many Requests')) {
-            throw ScrapingException::blocked($url->toString(), 'Jumia access denied');
+            str_contains($content, 'Enable JavaScript and cookies') ||
+            str_contains($content, 'cf-browser-verification') ||
+            str_contains($content, 'Just a moment...')) {
+            
+            Log::warning('[JUMIA-SCRAPER] Cloudflare challenge detected', [
+                'url' => $url->toString(),
+                'attempt' => $attempt,
+                'content_preview' => substr($content, 0, 500),
+            ]);
+            
+            throw ScrapingException::blocked($url->toString(), 'Cloudflare protection detected - may require proxy or browser automation');
         }
+
+        // Debug: Log a sample of the HTML to help troubleshoot selector issues
+        Log::debug('[JUMIA-SCRAPER] HTML sample received', [
+            'content_length' => strlen($content),
+            'has_price_class' => str_contains($content, '-prc'),
+            'has_h1_tag' => str_contains($content, '<h1'),
+            'has_json_ld' => str_contains($content, 'application/ld+json'),
+            'has_react_root' => str_contains($content, 'id="__NEXT_DATA__"') || str_contains($content, 'id="root"'),
+            'title_tag' => preg_match('/<title>(.*?)<\/title>/i', $content, $matches) ? $matches[1] : 'not found',
+        ]);
 
         return $content;
     }
@@ -204,14 +229,50 @@ class JumiaScraper implements PlatformScraperInterface
     private function extractProductData(Crawler $crawler, ProductUrl $url): ScrapedProductData
     {
         try {
-            $title = $this->extractTitle($crawler);
-            $price = $this->extractPrice($crawler);
-            $priceCurrency = $this->extractPriceCurrency($crawler, $url);
-            $rating = $this->extractRating($crawler);
-            $ratingCount = $this->extractRatingCount($crawler);
-            $imageUrl = $this->extractImageUrl($crawler);
-            $category = $this->extractCategory($crawler);
-            $platformId = $this->extractPlatformId($url, $crawler);
+            // Try to extract from JSON-LD first (more reliable)
+            $jsonLdData = $this->extractJsonLd($crawler);
+            
+            if ($jsonLdData) {
+                Log::debug('[JUMIA-SCRAPER] Extracting from JSON-LD', ['data_keys' => array_keys($jsonLdData)]);
+                
+                $title = $jsonLdData['name'] ?? $this->extractTitle($crawler);
+                
+                // Handle price - JSON-LD provides it as a float
+                if (isset($jsonLdData['offers']['price'])) {
+                    $priceValue = (float) $jsonLdData['offers']['price'];
+                    $priceCurrency = $jsonLdData['offers']['priceCurrency'] ?? $this->extractPriceCurrency($crawler, $url);
+                    $price = Price::fromFloat($priceValue, $priceCurrency);
+                } else {
+                    $price = $this->extractPrice($crawler);
+                    $priceCurrency = $this->extractPriceCurrency($crawler, $url);
+                }
+                
+                $rating = isset($jsonLdData['aggregateRating']['ratingValue']) ? (float) $jsonLdData['aggregateRating']['ratingValue'] : $this->extractRating($crawler);
+                $ratingCount = isset($jsonLdData['aggregateRating']['reviewCount']) ? (int) $jsonLdData['aggregateRating']['reviewCount'] : $this->extractRatingCount($crawler);
+                
+                // Handle image - can be array or string
+                if (isset($jsonLdData['image'])) {
+                    $imageUrl = is_array($jsonLdData['image']) ? ($jsonLdData['image'][0] ?? null) : $jsonLdData['image'];
+                } else {
+                    $imageUrl = $this->extractImageUrl($crawler);
+                }
+                
+                $category = !empty($jsonLdData['category']) ? $jsonLdData['category'] : $this->extractCategory($crawler);
+                $platformId = isset($jsonLdData['sku']) ? (string) $jsonLdData['sku'] : $this->extractPlatformId($url, $crawler);
+                
+            } else {
+                // Fallback to HTML selectors
+                Log::debug('[JUMIA-SCRAPER] JSON-LD not found, falling back to HTML selectors');
+                
+                $title = $this->extractTitle($crawler);
+                $price = $this->extractPrice($crawler);
+                $priceCurrency = $this->extractPriceCurrency($crawler, $url);
+                $rating = $this->extractRating($crawler);
+                $ratingCount = $this->extractRatingCount($crawler);
+                $imageUrl = $this->extractImageUrl($crawler);
+                $category = $this->extractCategory($crawler);
+                $platformId = $this->extractPlatformId($url, $crawler);
+            }
 
             return new ScrapedProductData(
                 title: $title,
@@ -229,6 +290,39 @@ class JumiaScraper implements PlatformScraperInterface
                 $url->toString(),
                 'Failed to extract product data: ' . $e->getMessage()
             );
+        }
+    }
+
+    /**
+     * Extract JSON-LD structured data
+     */
+    private function extractJsonLd(Crawler $crawler): ?array
+    {
+        try {
+            $jsonLdElements = $crawler->filter('script[type="application/ld+json"]');
+            
+            foreach ($jsonLdElements as $element) {
+                $jsonContent = $element->textContent;
+                $data = json_decode($jsonContent, true);
+                
+                if ($data && isset($data['@type']) && $data['@type'] === 'Product') {
+                    return $data;
+                }
+                
+                // Sometimes it's wrapped in an array
+                if ($data && is_array($data)) {
+                    foreach ($data as $item) {
+                        if (isset($item['@type']) && $item['@type'] === 'Product') {
+                            return $item;
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        } catch (Exception $e) {
+            Log::warning('[JUMIA-SCRAPER] Failed to parse JSON-LD', ['error' => $e->getMessage()]);
+            return null;
         }
     }
 

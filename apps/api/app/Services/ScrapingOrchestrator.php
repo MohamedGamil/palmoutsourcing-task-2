@@ -29,14 +29,14 @@ use Illuminate\Support\Facades\Log;
  */
 class ScrapingOrchestrator implements ScrapingOrchestratorInterface
 {
-    private ScrapingServiceInterface $guzzleScrapper;
+    private ScrapingServiceInterface $scrapper;
     private ProductMapperInterface $productMapper;
 
     public function __construct(
-        ScrapingServiceInterface $guzzleScrapper,
+        ScrapingServiceInterface $scrapper,
         ProductMapperInterface $productMapper
     ) {
-        $this->guzzleScrapper = $guzzleScrapper;
+        $this->scrapper = $scrapper;
         $this->productMapper = $productMapper;
     }
 
@@ -63,12 +63,12 @@ class ScrapingOrchestrator implements ScrapingOrchestratorInterface
             ]);
 
             // Check if platform is supported
-            if (!$this->guzzleScrapper->supportsPlatform($platform)) {
+            if (!$this->scrapper->supportsPlatform($platform)) {
                 throw new \Exception("Platform {$platform->toString()} is not supported");
             }
 
             // Scrape product data
-            $scrapedData = $this->guzzleScrapper->scrapeProduct($productUrl, $platform);
+            $scrapedData = $this->scrapper->scrapeProduct($productUrl, $platform);
 
             Log::info('[SCRAPING-ORCHESTRATOR] Product scraped successfully', [
                 'title' => $scrapedData->getTitle(),
@@ -103,7 +103,7 @@ class ScrapingOrchestrator implements ScrapingOrchestratorInterface
                 'validation' => $validation,
                 'processing_info' => [
                     'platform' => $platform->toString(),
-                    'scraper_class' => get_class($this->guzzleScrapper->getScraperForPlatform($platform)),
+                    'scraper_class' => get_class($this->scrapper->getScraperForPlatform($platform)),
                     'processed_at' => now()->toISOString(),
                 ],
             ];
@@ -186,7 +186,7 @@ class ScrapingOrchestrator implements ScrapingOrchestratorInterface
             $platform = Platform::fromString($platformName);
             
             // Test scraping service
-            $scrapingTest = $this->guzzleScrapper->testPlatformScraping($platform);
+            $scrapingTest = $this->scrapper->testPlatformScraping($platform);
             
             // Test mapping service statistics
             $mappingStats = $this->productMapper->getStatistics();
@@ -219,7 +219,7 @@ class ScrapingOrchestrator implements ScrapingOrchestratorInterface
      */
     public function getHealthStatus(): array
     {
-        $scrapingHealth = $this->guzzleScrapper->getHealthStatus();
+        $scrapingHealth = $this->scrapper->getHealthStatus();
         $mappingStats = $this->productMapper->getStatistics();
 
         return [
@@ -247,11 +247,11 @@ class ScrapingOrchestrator implements ScrapingOrchestratorInterface
         return [
             'service' => 'ScrapingOrchestrator',
             'components' => [
-                'scraping_service' => $this->guzzleScrapper->getStatistics(),
+                'scraping_service' => $this->scrapper->getStatistics(),
                 'mapping_service' => $this->productMapper->getStatistics(),
             ],
             'capabilities' => [
-                'supported_platforms' => $this->guzzleScrapper->getSupportedPlatforms(),
+                'supported_platforms' => $this->scrapper->getSupportedPlatforms(),
                 'proxy_integration' => true,
                 'user_agent_rotation' => true,
                 'data_validation' => true,

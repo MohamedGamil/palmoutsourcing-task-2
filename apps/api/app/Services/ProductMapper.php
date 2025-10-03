@@ -561,7 +561,7 @@ class ProductMapper implements ProductMapperInterface
         if (!empty(trim($scrapedData->getPriceCurrency()))) $score++;
 
         // Optional but valuable fields
-        if (!empty(trim($scrapedData->getPlatformCategory()))) $score++;
+        if ($scrapedData->getPlatformCategory() && !empty(trim($scrapedData->getPlatformCategory()))) $score++;
         if (!empty($scrapedData->getImageUrl())) $score++;
         if ($scrapedData->getRating() !== null) $score++;
         if ($scrapedData->getRatingCount() > 0) $score++;

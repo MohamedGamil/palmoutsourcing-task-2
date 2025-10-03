@@ -156,12 +156,6 @@ class AmazonScraper implements PlatformScraperInterface
      */
     private function fetchContent(ProductUrl $url, int $attempt): string
     {
-        Log::debug('[AMAZON-SCRAPER] Fetching content', [
-            'url' => $url->toString(),
-            'attempt' => $attempt,
-            'proxy_enabled' => $this->isProxyEnabled(),
-        ]);
-
         // Get HTTP client options with or without proxy based on configuration
         $clientOptions = $this->getHttpClientOptions([
             'headers' => [
@@ -170,6 +164,13 @@ class AmazonScraper implements PlatformScraperInterface
                 'Sec-Fetch-Site' => 'none',
                 'Cache-Control' => 'max-age=0',
             ]
+        ]);
+
+        Log::debug('[AMAZON-SCRAPER] Fetching content', [
+            'url' => $url->toString(),
+            'attempt' => $attempt,
+            'proxy_enabled' => $this->isProxyEnabled(),
+            'client_options' => $clientOptions,
         ]);
 
         $response = $this->httpClient->withOptions($clientOptions)->get($url->toString());
@@ -204,14 +205,50 @@ class AmazonScraper implements PlatformScraperInterface
     private function extractProductData(Crawler $crawler, ProductUrl $url): ScrapedProductData
     {
         try {
-            $title = $this->extractTitle($crawler);
-            $price = $this->extractPrice($crawler);
-            $priceCurrency = $this->extractPriceCurrency($crawler);
-            $rating = $this->extractRating($crawler);
-            $ratingCount = $this->extractRatingCount($crawler);
-            $imageUrl = $this->extractImageUrl($crawler);
-            $category = $this->extractCategory($crawler);
-            $platformId = $this->extractPlatformId($url, $crawler);
+            // Try to extract from JSON-LD first (more reliable)
+            $jsonLdData = $this->extractJsonLd($crawler);
+            
+            if ($jsonLdData) {
+                Log::debug('[AMAZON-SCRAPER] Extracting from JSON-LD', ['data_keys' => array_keys($jsonLdData)]);
+                
+                $title = $jsonLdData['name'] ?? $this->extractTitle($crawler);
+                
+                // Handle price - JSON-LD provides it as a float
+                if (isset($jsonLdData['offers']['price'])) {
+                    $priceValue = (float) $jsonLdData['offers']['price'];
+                    $priceCurrency = $jsonLdData['offers']['priceCurrency'] ?? $this->extractPriceCurrency($crawler);
+                    $price = Price::fromFloat($priceValue, $priceCurrency);
+                } else {
+                    $price = $this->extractPrice($crawler);
+                    $priceCurrency = $this->extractPriceCurrency($crawler);
+                }
+                
+                $rating = isset($jsonLdData['aggregateRating']['ratingValue']) ? (float) $jsonLdData['aggregateRating']['ratingValue'] : $this->extractRating($crawler);
+                $ratingCount = isset($jsonLdData['aggregateRating']['reviewCount']) ? (int) $jsonLdData['aggregateRating']['reviewCount'] : $this->extractRatingCount($crawler);
+                
+                // Handle image - can be array or string
+                if (isset($jsonLdData['image'])) {
+                    $imageUrl = is_array($jsonLdData['image']) ? ($jsonLdData['image'][0] ?? null) : $jsonLdData['image'];
+                } else {
+                    $imageUrl = $this->extractImageUrl($crawler);
+                }
+                
+                $category = !empty($jsonLdData['category']) ? $jsonLdData['category'] : $this->extractCategory($crawler);
+                $platformId = isset($jsonLdData['sku']) ? (string) $jsonLdData['sku'] : $this->extractPlatformId($url, $crawler);
+                
+            } else {
+                // Fallback to HTML selectors
+                Log::debug('[AMAZON-SCRAPER] JSON-LD not found, falling back to HTML selectors');
+                
+                $title = $this->extractTitle($crawler);
+                $price = $this->extractPrice($crawler);
+                $priceCurrency = $this->extractPriceCurrency($crawler);
+                $rating = $this->extractRating($crawler);
+                $ratingCount = $this->extractRatingCount($crawler);
+                $imageUrl = $this->extractImageUrl($crawler);
+                $category = $this->extractCategory($crawler);
+                $platformId = $this->extractPlatformId($url, $crawler);
+            }
 
             return new ScrapedProductData(
                 title: $title,
@@ -229,6 +266,39 @@ class AmazonScraper implements PlatformScraperInterface
                 $url->toString(),
                 'Failed to extract product data: ' . $e->getMessage()
             );
+        }
+    }
+
+    /**
+     * Extract JSON-LD structured data
+     */
+    private function extractJsonLd(Crawler $crawler): ?array
+    {
+        try {
+            $jsonLdElements = $crawler->filter('script[type="application/ld+json"]');
+            
+            foreach ($jsonLdElements as $element) {
+                $jsonContent = $element->textContent;
+                $data = json_decode($jsonContent, true);
+                
+                if ($data && isset($data['@type']) && $data['@type'] === 'Product') {
+                    return $data;
+                }
+                
+                // Sometimes it's wrapped in an array
+                if ($data && is_array($data)) {
+                    foreach ($data as $item) {
+                        if (isset($item['@type']) && $item['@type'] === 'Product') {
+                            return $item;
+                        }
+                    }
+                }
+            }
+            
+            return null;
+        } catch (Exception $e) {
+            Log::warning('[AMAZON-SCRAPER] Failed to parse JSON-LD', ['error' => $e->getMessage()]);
+            return null;
         }
     }
 
@@ -590,11 +660,12 @@ class AmazonScraper implements PlatformScraperInterface
         // Remove common prefixes/suffixes
         $category = preg_replace('/^(in\s+)?/i', '', $category);
         $category = preg_replace('/(\s+›.*)?$/', '', $category);
+
+        $category = trim($category);
+        $category = strlen($category) > 100 ? substr($category, 0, 100) : $category;
         
-        return $category;
+        return str_contains($category, 'Window.navmet.tmp') ? null : $category;
     }
-
-
 
     /**
      * Get the platform name this scraper handles

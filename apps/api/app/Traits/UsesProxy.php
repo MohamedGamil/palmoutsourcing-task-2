@@ -164,8 +164,8 @@ trait UsesProxy
             'connect_timeout' => Config::get('scraping.request.connect_timeout', 10),
             'headers' => [
                 'User-Agent' => $this->getUserAgent(),
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-                'Accept-Language' => 'en-US,en;q=0.5',
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+                'Accept-Language' => 'en-GB,en;q=0.9,en-US;q=0.8,ar;q=0.7',
                 'Accept-Encoding' => 'gzip, deflate',
                 'DNT' => '1',
                 'Connection' => 'keep-alive',
@@ -184,6 +184,11 @@ trait UsesProxy
             }
         } else {
             Log::debug('[PROXY-TRAIT] HTTP client configured without proxy');
+        }
+
+        if (isset($additionalOptions['headers'])) {
+            $options['headers'] = array_merge($options['headers'], $additionalOptions['headers']);
+            unset($additionalOptions['headers']);
         }
 
         return array_merge($options, $additionalOptions);
