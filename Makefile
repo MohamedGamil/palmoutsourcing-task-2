@@ -6,7 +6,7 @@ DC := docker compose
 SAIL_DIR := apps/api
 SAIL_CMD := cd $(SAIL_DIR) && SAIL_FILES=../../docker-compose.yml SAIL_PROJECT=palmoutsourcing-task ./vendor/bin/sail
 
-.PHONY: up up-build down ps logs install migrate fresh seed tinker swagger composer artisan api-make api-sh web-install web-sh reset-db clean prune
+.PHONY: up up-build down ps logs install migrate fresh seed tinker swagger composer artisan scrape api-make api-sh web-install web-sh reset-db clean prune
 
 
 # --- Lifecycle ---------------------------------------------------------------
@@ -94,6 +94,9 @@ composer:
 artisan:
 	$(SAIL_CMD) artisan $(t)
 
+scrape:
+	$(SAIL_CMD) artisan scrape $(filter-out $@,$(MAKECMDGOALS))
+
 api-make:
 	$(SAIL_CMD) artisan make:$(m)
 
@@ -108,3 +111,6 @@ web-install:
 
 web-sh:
 	$(DC) exec web sh
+
+%:
+	@:

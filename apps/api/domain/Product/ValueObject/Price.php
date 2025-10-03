@@ -35,9 +35,9 @@ final class Price
         return new self($amount);
     }
 
-    public static function fromFloat(float $amount): self
+    public static function fromFloat(float|string $amount): self
     {
-        return new self($amount);
+        return new self((float) $amount);
     }
 
     public static function fromString(string $amount): self
