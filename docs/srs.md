@@ -68,27 +68,35 @@ The system is a standalone web application that scrapes product data from eComme
     - `id` (Primary Key, Auto-increment)
     - `title` (VARCHAR(500), NOT NULL)
     - `price` (DECIMAL(10,2), NOT NULL)
+    - `price_currency` (VARCHAR(3), DEFAULT 'USD') - ISO 4217 currency code
+    - `rating` (DECIMAL(3,2), NULLABLE) - Product rating (0.00 to 5.00)
+    - `rating_count` (INTEGER, DEFAULT 0) - Number of customer ratings
     - `image_url` (TEXT, NULLABLE)
     - `product_url` (TEXT, NOT NULL) - URL of the product being watched
     - `platform` (ENUM('amazon', 'jumia'), NOT NULL) - Source platform
+    - `platform_category` (VARCHAR(255), NULLABLE) - Category from platform
     - `last_scraped_at` (TIMESTAMP, NULLABLE) - Last successful scrape time
     - `scrape_count` (INTEGER, DEFAULT 0) - Number of times scraped
     - `is_active` (BOOLEAN, DEFAULT TRUE) - Whether product is being actively watched
     - `created_at` (TIMESTAMP)
     - `updated_at` (TIMESTAMP)
-- **REQ-DB-002:** System SHALL create indexes on frequently queried fields (platform, is_active, created_at)
+- **REQ-DB-002:** System SHALL create indexes on frequently queried fields (platform, is_active, platform_category, created_at)
 - **REQ-DB-003:** System SHALL ensure product_url is unique per platform to prevent duplicate watches
 
 #### 3.1.3 Product Model
 - **REQ-MODEL-001:** System SHALL create a Product Eloquent model
 - **REQ-MODEL-002:** Product model SHALL include mass assignment protection
-- **REQ-MODEL-003:** Product model SHALL define fillable attributes: title, price, image_url, product_url, platform, last_scraped_at, scrape_count, is_active
+- **REQ-MODEL-003:** Product model SHALL define fillable attributes: title, price, price_currency, rating, rating_count, image_url, product_url, platform, platform_category, last_scraped_at, scrape_count, is_active
 - **REQ-MODEL-004:** Product model SHALL use timestamp fields (created_at, updated_at)
 - **REQ-MODEL-005:** Product model SHALL cast platform as string enum
 - **REQ-MODEL-006:** Product model SHALL cast is_active as boolean
 - **REQ-MODEL-007:** Product model SHALL cast last_scraped_at as datetime
 - **REQ-MODEL-008:** Product model SHALL implement scopes for filtering active products
 - **REQ-MODEL-009:** Product model SHALL implement scopes for filtering by platform
+- **REQ-MODEL-010:** Product model SHALL cast price, rating as decimal
+- **REQ-MODEL-011:** Product model SHALL cast rating_count, scrape_count as integer
+- **REQ-MODEL-012:** Product model SHALL validate rating range (0-5)
+- **REQ-MODEL-013:** Product model SHALL validate price_currency as valid ISO 4217 code
 
 #### 3.1.4 Product Watching and Management
 - **REQ-WATCH-001:** System SHALL support watching and managing products from Amazon and Jumia e-commerce platforms
@@ -102,7 +110,7 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-SCRAPE-001:** System SHALL implement a dedicated scraping service class
 - **REQ-SCRAPE-002:** Service SHALL use Guzzle HTTP client for making requests
 - **REQ-SCRAPE-003:** Service SHALL support scraping from Amazon and Jumia platforms
-- **REQ-SCRAPE-004:** Service SHALL extract: product title, price, image URL, and product URL
+- **REQ-SCRAPE-004:** Service SHALL extract: product title, price, price currency, rating, rating count, image URL, product URL, and platform category
 - **REQ-SCRAPE-005:** Service SHALL implement user-agent rotation from a predefined list
 - **REQ-SCRAPE-006:** Service SHALL handle HTTP errors gracefully
 - **REQ-SCRAPE-007:** Service SHALL validate scraped data before storage
@@ -112,6 +120,8 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-SCRAPE-011:** Service SHALL support scraping a list of products from multiple URLs
 - **REQ-SCRAPE-012:** Service SHALL differentiate between Amazon and Jumia product page structures
 - **REQ-SCRAPE-013:** Service SHALL handle platform-specific HTML parsing requirements
+- **REQ-SCRAPE-014:** Service SHALL extract platform-specific category information
+- **REQ-SCRAPE-015:** Service SHALL detect and extract currency from price information
 
 #### 3.1.6 Automated Product Updates
 - **REQ-AUTO-001:** System SHALL implement a job scheduler for periodic product updates
@@ -146,6 +156,9 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-FILTER-008:** System SHALL support custom page size via query parameter
 - **REQ-FILTER-009:** Filtering and pagination SHALL work together seamlessly
 - **REQ-FILTER-010:** API responses SHALL follow consistent JSON structure for paginated data
+- **REQ-FILTER-011:** GET `/api/products` endpoint SHALL support filtering by rating range
+- **REQ-FILTER-012:** GET `/api/products` endpoint SHALL support filtering by platform_category
+- **REQ-FILTER-013:** GET `/api/products` endpoint SHALL support filtering by price_currency
 
 #### 3.1.9 Data Validation Requirements
 - **REQ-VAL-001:** Product URL SHALL be validated as required and valid URL format
@@ -157,6 +170,10 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-VAL-007:** All input data SHALL be sanitized to prevent XSS attacks
 - **REQ-VAL-008:** API SHALL return 400 Bad Request for malformed JSON
 - **REQ-VAL-009:** API SHALL return 422 Unprocessable Entity for validation failures
+- **REQ-VAL-010:** Rating SHALL be optional, numeric value between 0.00 and 5.00
+- **REQ-VAL-011:** Rating count SHALL be optional, non-negative integer
+- **REQ-VAL-012:** Price currency SHALL be optional, valid ISO 4217 currency code (3 characters)
+- **REQ-VAL-013:** Platform category SHALL be optional, string type, max 255 characters
 
 #### 3.1.10 Integration with Golang Service
 - **REQ-INT-001:** Backend SHALL communicate with Golang proxy service
@@ -475,9 +492,13 @@ Product {
     id: integer (PK, auto-increment)
     title: string (max 500 characters)
     price: decimal(10,2)
+    price_currency: string (3 characters, default 'USD')
+    rating: decimal(3,2) (nullable, 0.00-5.00)
+    rating_count: integer (default 0)
     image_url: string (nullable, max 2048 characters)
     product_url: string (required, max 2048 characters)
     platform: enum('amazon', 'jumia')
+    platform_category: string (nullable, max 255 characters)
     last_scraped_at: timestamp (nullable)
     scrape_count: integer (default 0)
     is_active: boolean (default true)
@@ -489,9 +510,13 @@ Product {
 ### 6.2 Data Validation
 - Title: Required, string, max 500 characters
 - Price: Required, numeric, positive value, max 2 decimal places
+- Price Currency: Optional, string, 3 characters (ISO 4217), default 'USD'
+- Rating: Optional, numeric, 0.00 to 5.00, max 2 decimal places
+- Rating Count: Optional, integer, non-negative, default 0
 - Image URL: Optional, valid URL format, max 2048 characters
 - Product URL: Required, valid URL format, must match Amazon or Jumia domain
 - Platform: Required, must be 'amazon' or 'jumia'
+- Platform Category: Optional, string, max 255 characters
 - Is Active: Boolean, default true
 
 ---
@@ -510,6 +535,10 @@ Product {
 - `search` (string, optional): Search in product title
 - `min_price` (decimal, optional): Minimum price filter
 - `max_price` (decimal, optional): Maximum price filter
+- `min_rating` (decimal, optional): Minimum rating filter (0.00-5.00)
+- `max_rating` (decimal, optional): Maximum rating filter (0.00-5.00)
+- `category` (string, optional): Filter by platform_category
+- `currency` (string, optional): Filter by price_currency
 - `is_active` (boolean, optional): Filter by active status
 
 **Response (200 OK):**
@@ -520,9 +549,13 @@ Product {
             "id": 1,
             "title": "Product Name",
             "price": "99.99",
+            "price_currency": "USD",
+            "rating": "4.50",
+            "rating_count": 1250,
             "image_url": "https://example.com/image.jpg",
             "product_url": "https://www.amazon.com/product/...",
             "platform": "amazon",
+            "platform_category": "Electronics",
             "last_scraped_at": "2025-10-03T12:00:00Z",
             "scrape_count": 5,
             "is_active": true,
@@ -557,9 +590,13 @@ Product {
         "id": 1,
         "title": "Product Name",
         "price": "99.99",
+        "price_currency": "USD",
+        "rating": "4.50",
+        "rating_count": 1250,
         "image_url": "https://example.com/image.jpg",
         "product_url": "https://www.amazon.com/product/...",
         "platform": "amazon",
+        "platform_category": "Electronics",
         "last_scraped_at": "2025-10-03T12:00:00Z",
         "scrape_count": 1,
         "is_active": true,
@@ -591,9 +628,13 @@ Product {
         "id": 1,
         "title": "Product Name",
         "price": "99.99",
+        "price_currency": "USD",
+        "rating": "4.50",
+        "rating_count": 1250,
         "image_url": "https://example.com/image.jpg",
         "product_url": "https://www.amazon.com/product/...",
         "platform": "amazon",
+        "platform_category": "Electronics",
         "last_scraped_at": "2025-10-03T12:00:00Z",
         "scrape_count": 5,
         "is_active": true,
@@ -627,9 +668,13 @@ Product {
         "id": 1,
         "title": "Product Name",
         "price": "99.99",
+        "price_currency": "USD",
+        "rating": "4.50",
+        "rating_count": 1250,
         "image_url": "https://example.com/image.jpg",
         "product_url": "https://www.amazon.com/product/...",
         "platform": "amazon",
+        "platform_category": "Electronics",
         "last_scraped_at": "2025-10-03T12:00:00Z",
         "scrape_count": 5,
         "is_active": false,
