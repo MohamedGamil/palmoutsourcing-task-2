@@ -16,6 +16,72 @@
     },
     "components": {
         "schemas": {
+            "Product": {
+                "title": "Product",
+                "description": "Product model",
+                "required": [
+                    "title",
+                    "price"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "Product ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "description": "Product title",
+                        "type": "string",
+                        "example": "Wireless Headphones"
+                    },
+                    "price": {
+                        "description": "Product price",
+                        "type": "number",
+                        "format": "float",
+                        "example": 99.99
+                    },
+                    "list_price": {
+                        "description": "Product list price",
+                        "type": "number",
+                        "format": "float",
+                        "example": 129.99
+                    },
+                    "rating": {
+                        "description": "Product rating",
+                        "type": "number",
+                        "format": "float",
+                        "example": 4.5
+                    },
+                    "rating_count": {
+                        "description": "Number of ratings",
+                        "type": "integer",
+                        "example": 150
+                    },
+                    "vendor_name": {
+                        "description": "Vendor name",
+                        "type": "string",
+                        "example": "TechStore Inc."
+                    },
+                    "image_url": {
+                        "description": "Product image URL",
+                        "type": "string",
+                        "example": "https://example.com/images/product.jpg"
+                    },
+                    "created_at": {
+                        "description": "Creation timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-01T12:00:00Z"
+                    },
+                    "updated_at": {
+                        "description": "Last update timestamp",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2024-01-01T12:00:00Z"
+                    }
+                },
+                "type": "object"
+            },
             "User": {
                 "title": "User",
                 "required": [
