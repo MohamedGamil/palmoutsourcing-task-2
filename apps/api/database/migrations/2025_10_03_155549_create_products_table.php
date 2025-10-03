@@ -15,12 +15,13 @@ return new class extends Migration
             $table->id();
             $table->string('title', 500)->index();
             $table->decimal('price', 10, 2)->default(0)->index();
-            $table->decimal('rating', 3, 2)->default(0);
+            $table->string('price_currency', 3)->default('USD');
+            $table->decimal('rating', 3, 2)->nullable();
             $table->unsignedInteger('rating_count')->default(0);
             $table->string('image_url', 500)->nullable();
-            $table->string('product_url', 500)->unique()->index();
+            $table->string('product_url', 500)->index();
             $table->string('platform')->index();
-            $table->string('platform_category')->nullable();
+            $table->string('platform_category', 255)->nullable()->index();
             $table->boolean('is_active')->default(true)->index();
             $table->unsignedInteger('scrape_count')->default(0);
             $table->timestamp('last_scraped_at')->nullable();

@@ -39,6 +39,14 @@ use Illuminate\Database\Eloquent\Model;
  *         example=349.99
  *     ),
  *     @OA\Property(
+ *         property="price_currency",
+ *         type="string",
+ *         description="ISO 4217 currency code",
+ *         maxLength=3,
+ *         default="USD",
+ *         example="USD"
+ *     ),
+ *     @OA\Property(
  *         property="rating",
  *         type="number",
  *         format="float",
@@ -148,6 +156,7 @@ class Product extends Model
     protected $fillable = [
         'title',
         'price',
+        'price_currency',
         'rating',
         'rating_count',
         'image_url',
@@ -325,6 +334,7 @@ class Product extends Model
             self::validatePlatform($product);
             self::validateProductUrl($product);
             self::validateRating($product);
+            self::validatePriceCurrency($product);
         });
 
         static::updating(function ($product) {
@@ -336,6 +346,7 @@ class Product extends Model
             }
 
             self::validateRating($product);
+            self::validatePriceCurrency($product);
         });
     }
 
@@ -394,6 +405,24 @@ class Product extends Model
         if (!is_null($product->rating_count)) {
             if ($product->rating_count < 0) {
                 throw new \InvalidArgumentException('Rating count cannot be negative');
+            }
+        }
+    }
+
+    /**
+     * Validate price currency (ISO 4217)
+     *
+     * @param Product $product
+     * @throws \InvalidArgumentException
+     */
+    private static function validatePriceCurrency(Product $product): void
+    {
+        if (!empty($product->price_currency)) {
+            // Basic validation: must be 3 uppercase letters
+            if (!preg_match('/^[A-Z]{3}$/', $product->price_currency)) {
+                throw new \InvalidArgumentException(
+                    'Price currency must be a valid ISO 4217 currency code (3 uppercase letters)'
+                );
             }
         }
     }

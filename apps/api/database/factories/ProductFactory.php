@@ -63,10 +63,12 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         $platform = fake()->randomElement(Product::SUPPORTED_PLATFORMS);
+        $currency = $this->getCurrencyForPlatform($platform);
 
         return [
             'title' => fake()->randomElement(self::PRODUCT_TITLES),
             'price' => fake()->randomFloat(2, 19.99, 1999.99),
+            'price_currency' => $currency,
             'rating' => fake()->randomFloat(2, 1, 5),
             'rating_count' => fake()->numberBetween(0, 10000),
             'platform_category' => fake()->randomElement($this->getPlatformCategories($platform)),
@@ -220,5 +222,22 @@ class ProductFactory extends Factory
             'Sports & Fitness',
             'Automotive',
         ];
+    }
+
+    /**
+     * Get currency for platform
+     *
+     * @param string $platform
+     * @return string
+     */
+    private function getCurrencyForPlatform(string $platform): string
+    {
+        if ($platform === Product::PLATFORM_AMAZON) {
+            // Amazon supports multiple currencies
+            return fake()->randomElement(['USD', 'GBP', 'EUR', 'CAD']);
+        }
+
+        // Jumia primarily uses local currencies in Africa
+        return fake()->randomElement(['NGN', 'KES', 'EGP', 'USD']);
     }
 }
