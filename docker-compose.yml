@@ -62,23 +62,43 @@ services:
       retries: 3
       timeout: 5s
 
-# Next.js dev
-web:
-  container_name: web
-  build:
-    context: './apps/web'
-    dockerfile: Dockerfile
-  ports:
-    - "3001:3000"
-  environment:
-    PORT: 3000
-    NEXT_PUBLIC_API_URL: "http://localhost:8081"
-  restart: unless-stopped
-  volumes:
-    - ./apps/web:/app
-  depends_on:
-    - laravel.test
-  networks: [sail]
+  # Proxy service
+  proxy:
+    container_name: proxy-service
+    build:
+      context: ./apps/proxy-service
+      dockerfile: Dockerfile
+    ports:
+      - '${PROXY_SERVICE_PORT:-7001}:${PROXY_SERVICE_PORT:-7001}'
+    environment:
+      PROXY_SERVICE_PORT: '${PROXY_SERVICE_PORT:-7001}'
+    restart: unless-stopped
+    networks:
+      - sail
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Next.js dev
+  web:
+    container_name: web
+    build:
+      context: './apps/web'
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: "http://localhost:8081"
+    restart: unless-stopped
+    volumes:
+      - ./apps/web:/app
+    depends_on:
+      - laravel.test
+    networks: [sail]
 
 networks:
   sail:
