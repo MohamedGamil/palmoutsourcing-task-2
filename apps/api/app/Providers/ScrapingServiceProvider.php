@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Facades\ProductMapper as ProductMapperFacade;
+use App\Facades\ScrapingOrchestrator as ScrapingOrchestratorFacade;
+use App\Facades\ScrapingService as ScrapingServiceFacade;
+use App\Facades\ProxyService as ProxyServiceFacade;
 use App\Services\GuzzleScrapper;
 use App\Services\ProductMapper;
 use App\Services\ProxyService;
@@ -12,6 +16,7 @@ use Domain\Product\Service\ProductMapperInterface;
 use Domain\Product\Service\ProxyServiceInterface;
 use Domain\Product\Service\ScrapingOrchestratorInterface;
 use Domain\Product\Service\ScrapingServiceInterface;
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Http\Client\Factory as HttpClient;
 use Illuminate\Support\ServiceProvider;
 
@@ -67,6 +72,11 @@ class ScrapingServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Register facades
+        $loader = AliasLoader::getInstance();
+        $loader->alias('ScrapingService', ScrapingServiceFacade::class);
+        $loader->alias('ProductMapper', ProductMapperFacade::class);
+        $loader->alias('ScrapingOrchestrator', ScrapingOrchestratorFacade::class);
+        $loader->alias('ProxyService', ProxyServiceFacade::class);
     }
 }

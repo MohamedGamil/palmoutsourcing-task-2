@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Facades;
 
 use Domain\Product\Service\ProxyInfo;
-use Domain\Product\Service\ProxyServiceInterface;
 use Domain\Product\Service\ProxyServiceStatus;
 use Illuminate\Support\Facades\Facade;
 
@@ -19,7 +18,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool isHealthy()
  * @method static ProxyServiceStatus getStatus()
  * 
- * @see ProxyServiceInterface
+ * @see \App\Services\ProxyService
  */
 class ProxyService extends Facade
 {
@@ -28,6 +27,6 @@ class ProxyService extends Facade
      */
     protected static function getFacadeAccessor(): string
     {
-        return ProxyServiceInterface::class;
+        return \Domain\Product\Service\ProxyServiceInterface::class;
     }
 }
