@@ -74,19 +74,21 @@ The system is a standalone web application that scrapes product data from eComme
     - `image_url` (TEXT, NULLABLE)
     - `product_url` (TEXT, NOT NULL) - URL of the product being watched
     - `platform` (ENUM('amazon', 'jumia'), NOT NULL) - Source platform
+    - `platform_id` (VARCHAR(255), NULLABLE) - Platform-specific product identifier/SKU
     - `platform_category` (VARCHAR(255), NULLABLE) - Category from platform
     - `last_scraped_at` (TIMESTAMP, NULLABLE) - Last successful scrape time
     - `scrape_count` (INTEGER, DEFAULT 0) - Number of times scraped
     - `is_active` (BOOLEAN, DEFAULT TRUE) - Whether product is being actively watched
     - `created_at` (TIMESTAMP)
     - `updated_at` (TIMESTAMP)
-- **REQ-DB-002:** System SHALL create indexes on frequently queried fields (platform, is_active, platform_category, created_at)
+- **REQ-DB-002:** System SHALL create indexes on frequently queried fields (platform, is_active, platform_category, platform_id, created_at)
 - **REQ-DB-003:** System SHALL ensure product_url is unique per platform to prevent duplicate watches
+- **REQ-DB-004:** System SHALL ensure platform_id is unique per platform when provided
 
 #### 3.1.3 Product Model
 - **REQ-MODEL-001:** System SHALL create a Product Eloquent model
 - **REQ-MODEL-002:** Product model SHALL include mass assignment protection
-- **REQ-MODEL-003:** Product model SHALL define fillable attributes: title, price, price_currency, rating, rating_count, image_url, product_url, platform, platform_category, last_scraped_at, scrape_count, is_active
+- **REQ-MODEL-003:** Product model SHALL define fillable attributes: title, price, price_currency, rating, rating_count, image_url, product_url, platform, platform_id, platform_category, last_scraped_at, scrape_count, is_active
 - **REQ-MODEL-004:** Product model SHALL use timestamp fields (created_at, updated_at)
 - **REQ-MODEL-005:** Product model SHALL cast platform as string enum
 - **REQ-MODEL-006:** Product model SHALL cast is_active as boolean
@@ -110,7 +112,7 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-SCRAPE-001:** System SHALL implement a dedicated scraping service class
 - **REQ-SCRAPE-002:** Service SHALL use Guzzle HTTP client for making requests
 - **REQ-SCRAPE-003:** Service SHALL support scraping from Amazon and Jumia platforms
-- **REQ-SCRAPE-004:** Service SHALL extract: product title, price, price currency, rating, rating count, image URL, product URL, and platform category
+- **REQ-SCRAPE-004:** Service SHALL extract: product title, price, price currency, rating, rating count, image URL, product URL, platform identifier/SKU, and platform category
 - **REQ-SCRAPE-005:** Service SHALL implement user-agent rotation from a predefined list
 - **REQ-SCRAPE-006:** Service SHALL handle HTTP errors gracefully
 - **REQ-SCRAPE-007:** Service SHALL validate scraped data before storage
@@ -174,6 +176,7 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-VAL-011:** Rating count SHALL be optional, non-negative integer
 - **REQ-VAL-012:** Price currency SHALL be optional, valid ISO 4217 currency code (3 characters)
 - **REQ-VAL-013:** Platform category SHALL be optional, string type, max 255 characters
+- **REQ-VAL-014:** Platform ID SHALL be optional, string type, max 255 characters
 
 #### 3.1.10 Integration with Golang Service
 - **REQ-INT-001:** Backend SHALL communicate with Golang proxy service
@@ -498,6 +501,7 @@ Product {
     image_url: string (nullable, max 2048 characters)
     product_url: string (required, max 2048 characters)
     platform: enum('amazon', 'jumia')
+    platform_id: string (nullable, max 255 characters)
     platform_category: string (nullable, max 255 characters)
     last_scraped_at: timestamp (nullable)
     scrape_count: integer (default 0)
@@ -516,6 +520,7 @@ Product {
 - Image URL: Optional, valid URL format, max 2048 characters
 - Product URL: Required, valid URL format, must match Amazon or Jumia domain
 - Platform: Required, must be 'amazon' or 'jumia'
+- Platform ID: Optional, string, max 255 characters
 - Platform Category: Optional, string, max 255 characters
 - Is Active: Boolean, default true
 
@@ -538,6 +543,7 @@ Product {
 - `min_rating` (decimal, optional): Minimum rating filter (0.00-5.00)
 - `max_rating` (decimal, optional): Maximum rating filter (0.00-5.00)
 - `category` (string, optional): Filter by platform_category
+- `platform_id` (string, optional): Filter by platform_id
 - `currency` (string, optional): Filter by price_currency
 - `is_active` (boolean, optional): Filter by active status
 
@@ -555,6 +561,7 @@ Product {
             "image_url": "https://example.com/image.jpg",
             "product_url": "https://www.amazon.com/product/...",
             "platform": "amazon",
+            "platform_id": "B08N5WRWNW",
             "platform_category": "Electronics",
             "last_scraped_at": "2025-10-03T12:00:00Z",
             "scrape_count": 5,
@@ -596,6 +603,7 @@ Product {
         "image_url": "https://example.com/image.jpg",
         "product_url": "https://www.amazon.com/product/...",
         "platform": "amazon",
+        "platform_id": "B08N5WRWNW",
         "platform_category": "Electronics",
         "last_scraped_at": "2025-10-03T12:00:00Z",
         "scrape_count": 1,
@@ -634,6 +642,7 @@ Product {
         "image_url": "https://example.com/image.jpg",
         "product_url": "https://www.amazon.com/product/...",
         "platform": "amazon",
+        "platform_id": "B08N5WRWNW",
         "platform_category": "Electronics",
         "last_scraped_at": "2025-10-03T12:00:00Z",
         "scrape_count": 5,
@@ -674,6 +683,7 @@ Product {
         "image_url": "https://example.com/image.jpg",
         "product_url": "https://www.amazon.com/product/...",
         "platform": "amazon",
+        "platform_id": "B08N5WRWNW",
         "platform_category": "Electronics",
         "last_scraped_at": "2025-10-03T12:00:00Z",
         "scrape_count": 5,

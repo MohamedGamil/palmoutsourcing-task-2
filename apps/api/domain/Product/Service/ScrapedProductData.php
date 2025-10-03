@@ -21,6 +21,7 @@ final class ScrapedProductData
     private int $ratingCount;
     private ?string $platformCategory;
     private ?string $imageUrl;
+    private ?string $platformId;
 
     public function __construct(
         string $title,
@@ -29,7 +30,8 @@ final class ScrapedProductData
         ?float $rating = null,
         int $ratingCount = 0,
         ?string $platformCategory = null,
-        ?string $imageUrl = null
+        ?string $imageUrl = null,
+        ?string $platformId = null
     ) {
         $this->title = $title;
         $this->price = $price;
@@ -38,6 +40,7 @@ final class ScrapedProductData
         $this->ratingCount = $ratingCount;
         $this->platformCategory = $platformCategory;
         $this->imageUrl = $imageUrl;
+        $this->platformId = $platformId;
     }
 
     public function getTitle(): string
@@ -75,6 +78,11 @@ final class ScrapedProductData
         return $this->imageUrl;
     }
 
+    public function getPlatformId(): ?string
+    {
+        return $this->platformId;
+    }
+
     public function toArray(): array
     {
         return [
@@ -85,6 +93,7 @@ final class ScrapedProductData
             'rating_count' => $this->ratingCount,
             'platform_category' => $this->platformCategory,
             'image_url' => $this->imageUrl,
+            'platform_id' => $this->platformId,
         ];
     }
 }

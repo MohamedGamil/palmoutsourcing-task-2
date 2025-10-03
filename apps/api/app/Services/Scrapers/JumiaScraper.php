@@ -211,6 +211,7 @@ class JumiaScraper implements PlatformScraperInterface
             $ratingCount = $this->extractRatingCount($crawler);
             $imageUrl = $this->extractImageUrl($crawler);
             $category = $this->extractCategory($crawler);
+            $platformId = $this->extractPlatformId($url, $crawler);
 
             return new ScrapedProductData(
                 title: $title,
@@ -219,7 +220,8 @@ class JumiaScraper implements PlatformScraperInterface
                 rating: $rating,
                 ratingCount: $ratingCount,
                 platformCategory: $category,
-                imageUrl: $imageUrl
+                imageUrl: $imageUrl,
+                platformId: $platformId
             );
 
         } catch (Exception $e) {
@@ -396,6 +398,80 @@ class JumiaScraper implements PlatformScraperInterface
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Extract platform-specific product identifier (SKU for Jumia)
+     * 
+     * Jumia uses SKUs embedded in URLs to uniquely identify products.
+     * 
+     * Common URL patterns:
+     * - https://www.jumia.com.eg/product-name-sku.html
+     * - https://www.jumia.co.ke/category/product-name-sku.html
+     * 
+     * The SKU is typically the last segment before .html
+     * 
+     * @param ProductUrl $url
+     * @param Crawler $crawler
+     * @return string|null
+     */
+    private function extractPlatformId(ProductUrl $url, Crawler $crawler): ?string
+    {
+        $urlString = $url->toString();
+        
+        // Pattern 1: Extract SKU from URL path (usually the last segment before .html)
+        // Example: /product-name-ABC123XYZ.html -> ABC123XYZ
+        if (preg_match('/\/([A-Z0-9_-]{5,})\.html/i', $urlString, $matches)) {
+            // The matched segment might include product slug, get the last part
+            $segment = $matches[1];
+            
+            // Try to extract the actual SKU (usually alphanumeric at the end)
+            if (preg_match('/([A-Z0-9_-]{5,})$/i', $segment, $skuMatch)) {
+                return strtoupper($skuMatch[1]);
+            }
+            
+            return strtoupper($segment);
+        }
+        
+        // Pattern 2: Try to extract from SKU query parameter
+        if (preg_match('/[?&]sku=([A-Z0-9_-]+)/i', $urlString, $matches)) {
+            return strtoupper($matches[1]);
+        }
+        
+        // Pattern 3: Try to extract from HTML data attributes
+        try {
+            // Check for SKU in data attributes
+            $dataSku = $crawler->filter('[data-sku]')->first();
+            if ($dataSku->count() > 0) {
+                $sku = $dataSku->attr('data-sku');
+                if (!empty($sku)) {
+                    return strtoupper($sku);
+                }
+            }
+            
+            // Check for SKU in meta tags
+            $metaSku = $crawler->filter('meta[name="product:sku"]')->first();
+            if ($metaSku->count() > 0) {
+                $sku = $metaSku->attr('content');
+                if (!empty($sku)) {
+                    return strtoupper($sku);
+                }
+            }
+            
+            // Check for product ID in data-id or data-product-id
+            $dataProductId = $crawler->filter('[data-product-id], [data-id]')->first();
+            if ($dataProductId->count() > 0) {
+                $productId = $dataProductId->attr('data-product-id') ?: $dataProductId->attr('data-id');
+                if (!empty($productId)) {
+                    return strtoupper($productId);
+                }
+            }
+        } catch (Exception $e) {
+            // Continue if HTML extraction fails
+        }
+        
+        Log::debug('[JUMIA-SCRAPER] Could not extract SKU', ['url' => $urlString]);
         return null;
     }
 

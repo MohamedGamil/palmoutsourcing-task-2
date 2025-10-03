@@ -245,6 +245,7 @@ class ProductRepository implements ProductRepositoryInterface
             'image_url' => $product->getImageUrl(),
             'product_url' => $product->getProductUrl()->toString(),
             'platform' => $product->getPlatform()->toString(),
+            'platform_id' => $product->getPlatformId(),
             'last_scraped_at' => $product->getLastScrapedAt() 
                 ? Carbon::parse($product->getLastScrapedAt()) 
                 : null,
@@ -272,6 +273,7 @@ class ProductRepository implements ProductRepositoryInterface
             'image_url' => $product->getImageUrl(),
             'product_url' => $product->getProductUrl()->toString(),
             'platform' => $product->getPlatform()->toString(),
+            'platform_id' => $product->getPlatformId(),
             'last_scraped_at' => $product->getLastScrapedAt() 
                 ? Carbon::parse($product->getLastScrapedAt()) 
                 : null,
@@ -299,13 +301,14 @@ class ProductRepository implements ProductRepositoryInterface
             priceCurrency: $model->price_currency ?? 'USD',
             rating: $model->rating,
             ratingCount: $model->rating_count ?? 0,
+            platformId: $model->platform_id,
             platformCategory: $model->platform_category,
             imageUrl: $model->image_url,
             lastScrapedAt: $model->last_scraped_at,
             scrapeCount: $model->scrape_count ?? 0,
             isActive: $model->is_active ?? true,
             createdAt: $model->created_at,
-            updatedAt: $model->updated_at
+            updatedAt: $model->updated_at,
         );
     }
 }

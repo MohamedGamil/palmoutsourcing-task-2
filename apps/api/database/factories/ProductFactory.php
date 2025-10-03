@@ -75,6 +75,7 @@ class ProductFactory extends Factory
             'image_url' => fake()->imageUrl(640, 480, 'products', true),
             'product_url' => $this->generateProductUrl($platform),
             'platform' => $platform,
+            'platform_id' => $this->generatePlatformId($platform),
             'last_scraped_at' => fake()->boolean(70) ? fake()->dateTimeBetween('-7 days', 'now') : null,
             'scrape_count' => fake()->numberBetween(0, 100),
             'is_active' => fake()->boolean(85), // 85% active products
@@ -91,6 +92,7 @@ class ProductFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'platform' => Product::PLATFORM_AMAZON,
             'product_url' => $this->generateProductUrl(Product::PLATFORM_AMAZON),
+            'platform_id' => $this->generatePlatformId(Product::PLATFORM_AMAZON),
         ]);
     }
 
@@ -104,6 +106,7 @@ class ProductFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'platform' => Product::PLATFORM_JUMIA,
             'product_url' => $this->generateProductUrl(Product::PLATFORM_JUMIA),
+            'platform_id' => $this->generatePlatformId(Product::PLATFORM_JUMIA),
         ]);
     }
 
@@ -188,6 +191,28 @@ class ProductFactory extends Factory
         $template = fake()->randomElement(self::JUMIA_URL_TEMPLATES);
         $slug = fake()->slug(3);
         return sprintf($template, $slug);
+    }
+
+    /**
+     * Generate platform-specific product identifier
+     *
+     * @param string $platform
+     * @return string|null
+     */
+    private function generatePlatformId(string $platform): ?string
+    {
+        // 80% chance of having platform_id
+        if (!fake()->boolean(80)) {
+            return null;
+        }
+
+        if ($platform === Product::PLATFORM_AMAZON) {
+            // Amazon ASIN format: 10 characters, alphanumeric
+            return strtoupper(fake()->bothify('??########'));
+        }
+        
+        // Jumia SKU format: mix of letters and numbers
+        return strtoupper(fake()->bothify('???-####-???'));
     }
 
     /**

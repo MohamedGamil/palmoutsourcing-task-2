@@ -182,7 +182,8 @@ class ProductScrapingStorageService implements ProductScrapingStorageServiceInte
             rating: $mappedData['rating'] ?? null,
             ratingCount: $mappedData['rating_count'] ?? 0,
             platformCategory: $mappedData['category'] ?? null,
-            imageUrl: $mappedData['image_url'] ?? null
+            imageUrl: $mappedData['image_url'] ?? null,
+            platformId: $mappedData['platform_id'] ?? null
         );
 
         // Mark as scraped to update scrape count and timestamp
@@ -207,7 +208,8 @@ class ProductScrapingStorageService implements ProductScrapingStorageServiceInte
             rating: $mappedData['rating'] ?? null,
             ratingCount: $mappedData['rating_count'] ?? 0,
             platformCategory: $mappedData['category'] ?? null,
-            imageUrl: $mappedData['image_url'] ?? null
+            imageUrl: $mappedData['image_url'] ?? null,
+            platformId: $mappedData['platform_id'] ?? null
         );
 
         // Mark as scraped for the first time

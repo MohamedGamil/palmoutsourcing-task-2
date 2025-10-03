@@ -211,6 +211,7 @@ class AmazonScraper implements PlatformScraperInterface
             $ratingCount = $this->extractRatingCount($crawler);
             $imageUrl = $this->extractImageUrl($crawler);
             $category = $this->extractCategory($crawler);
+            $platformId = $this->extractPlatformId($url, $crawler);
 
             return new ScrapedProductData(
                 title: $title,
@@ -219,7 +220,8 @@ class AmazonScraper implements PlatformScraperInterface
                 rating: $rating,
                 ratingCount: $ratingCount,
                 platformCategory: $category,
-                imageUrl: $imageUrl
+                imageUrl: $imageUrl,
+                platformId: $platformId
             );
 
         } catch (Exception $e) {
@@ -387,6 +389,63 @@ class AmazonScraper implements PlatformScraperInterface
             }
         }
 
+        return null;
+    }
+
+    /**
+     * Extract platform-specific product identifier (ASIN for Amazon)
+     * 
+     * Amazon ASIN (Amazon Standard Identification Number) is a 10-character alphanumeric code
+     * that uniquely identifies products on Amazon.
+     * 
+     * Common URL patterns:
+     * - https://www.amazon.com/dp/B08N5WRWNW
+     * - https://www.amazon.com/product-name/dp/B08N5WRWNW
+     * - https://www.amazon.com/gp/product/B08N5WRWNW
+     * 
+     * @param ProductUrl $url
+     * @param Crawler $crawler
+     * @return string|null
+     */
+    private function extractPlatformId(ProductUrl $url, Crawler $crawler): ?string
+    {
+        $urlString = $url->toString();
+        
+        // Try to extract ASIN from URL patterns
+        // Pattern 1: /dp/ASIN or /product/ASIN
+        if (preg_match('/\/(?:dp|product|gp\/product)\/([A-Z0-9]{10})/', $urlString, $matches)) {
+            return $matches[1];
+        }
+        
+        // Pattern 2: ASIN as query parameter (?asin=...)
+        if (preg_match('/[?&]asin=([A-Z0-9]{10})/i', $urlString, $matches)) {
+            return strtoupper($matches[1]);
+        }
+        
+        // Pattern 3: Try to extract from HTML meta tags or data attributes
+        try {
+            // Check for ASIN in meta tags
+            $metaAsin = $crawler->filter('input[name="ASIN"]')->first();
+            if ($metaAsin->count() > 0) {
+                $asin = $metaAsin->attr('value');
+                if (!empty($asin) && preg_match('/^[A-Z0-9]{10}$/', $asin)) {
+                    return $asin;
+                }
+            }
+            
+            // Check for data-asin attribute
+            $dataAsin = $crawler->filter('[data-asin]')->first();
+            if ($dataAsin->count() > 0) {
+                $asin = $dataAsin->attr('data-asin');
+                if (!empty($asin) && preg_match('/^[A-Z0-9]{10}$/', $asin)) {
+                    return $asin;
+                }
+            }
+        } catch (Exception $e) {
+            // Continue if HTML extraction fails
+        }
+        
+        Log::debug('[AMAZON-SCRAPER] Could not extract ASIN', ['url' => $urlString]);
         return null;
     }
 

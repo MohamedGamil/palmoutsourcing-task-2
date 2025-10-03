@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('image_url', 500)->nullable();
             $table->string('product_url', 500)->index();
             $table->string('platform')->index();
+            $table->string('platform_id', 100)->nullable()->index();
             $table->string('platform_category', 255)->nullable()->index();
             $table->boolean('is_active')->default(true)->index();
             $table->unsignedInteger('scrape_count')->default(0);

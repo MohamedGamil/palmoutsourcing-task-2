@@ -87,6 +87,14 @@ use Illuminate\Database\Eloquent\Model;
  *         example="amazon"
  *     ),
  *     @OA\Property(
+ *         property="platform_id",
+ *         type="string",
+ *         description="Platform-specific product identifier (ASIN for Amazon, SKU for others)",
+ *         nullable=true,
+ *         maxLength=100,
+ *         example="B0863TXGM3"
+ *     ),
+ *     @OA\Property(
  *         property="platform_category",
  *         type="string",
  *         description="Category from the platform",
@@ -162,6 +170,7 @@ class Product extends Model
         'image_url',
         'product_url',
         'platform',
+        'platform_id',
         'platform_category',
         'last_scraped_at',
         'scrape_count',

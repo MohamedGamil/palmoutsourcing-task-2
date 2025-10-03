@@ -30,6 +30,7 @@ class Product
     private string $priceCurrency;
     private ?float $rating;
     private int $ratingCount;
+    private ?string $platformId;
     private ?string $platformCategory;
     private ?string $imageUrl;
     private ProductUrl $productUrl;
@@ -64,6 +65,7 @@ class Product
         string $priceCurrency = 'USD',
         ?float $rating = null,
         int $ratingCount = 0,
+        ?string $platformId = null,
         ?string $platformCategory = null,
         ?string $imageUrl = null,
         ?int $id = null,
@@ -86,6 +88,7 @@ class Product
         $this->priceCurrency = $priceCurrency;
         $this->rating = $rating;
         $this->ratingCount = $ratingCount;
+        $this->platformId = $platformId;
         $this->platformCategory = $platformCategory;
         $this->imageUrl = $imageUrl;
         $this->productUrl = $productUrl;
@@ -109,6 +112,7 @@ class Product
         string $priceCurrency = 'USD',
         ?float $rating = null,
         int $ratingCount = 0,
+        ?string $platformId = null,
         ?string $platformCategory = null,
         ?string $imageUrl = null
     ): self {
@@ -120,6 +124,7 @@ class Product
             priceCurrency: $priceCurrency,
             rating: $rating,
             ratingCount: $ratingCount,
+            platformId: $platformId,
             platformCategory: $platformCategory,
             imageUrl: $imageUrl,
             isActive: true,
@@ -140,6 +145,7 @@ class Product
         string $priceCurrency,
         ?float $rating,
         int $ratingCount,
+        ?string $platformId,
         ?string $platformCategory,
         ?string $imageUrl,
         ?DateTimeInterface $lastScrapedAt,
@@ -156,6 +162,7 @@ class Product
             priceCurrency: $priceCurrency,
             rating: $rating,
             ratingCount: $ratingCount,
+            platformId: $platformId,
             platformCategory: $platformCategory,
             imageUrl: $imageUrl,
             id: $id,
@@ -175,6 +182,7 @@ class Product
         Price $price,
         ?float $rating = null,
         int $ratingCount = 0,
+        ?string $platformId = null,
         ?string $platformCategory = null,
         ?string $imageUrl = null
     ): void {
@@ -187,6 +195,7 @@ class Product
         $this->price = $price;
         $this->rating = $rating;
         $this->ratingCount = $ratingCount;
+        $this->platformId = $platformId;
         $this->platformCategory = $platformCategory;
         $this->imageUrl = $imageUrl;
         $this->touch();
@@ -387,6 +396,11 @@ class Product
         return $this->platform;
     }
 
+    public function getPlatformId(): ?string
+    {
+        return $this->platformId;
+    }
+
     public function getLastScrapedAt(): ?DateTimeInterface
     {
         return $this->lastScrapedAt;
@@ -437,6 +451,7 @@ class Product
             'image_url' => $this->imageUrl,
             'product_url' => $this->productUrl->toString(),
             'platform' => $this->platform->toString(),
+            'platform_id' => $this->platformId,
             'last_scraped_at' => $this->lastScrapedAt?->format('Y-m-d H:i:s'),
             'scrape_count' => $this->scrapeCount,
             'is_active' => $this->isActive,

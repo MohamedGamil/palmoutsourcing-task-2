@@ -126,6 +126,7 @@ class ProductMapper implements ProductMapperInterface
                 'currency' => $scrapedData->getPriceCurrency(),
                 'category' => $category,
                 'platform' => $platform->toString(),
+                'platform_id' => $scrapedData->getPlatformId(),
                 'original_url' => $originalUrl->toString(),
                 'image_url' => $scrapedData->getImageUrl(),
                 'rating' => $scrapedData->getRating(),
@@ -552,7 +553,7 @@ class ProductMapper implements ProductMapperInterface
     private function calculateCompletenessScore(ScrapedProductData $scrapedData): float
     {
         $score = 0;
-        $maxScore = 7;
+        $maxScore = 8;
 
         // Required fields
         if (!empty(trim($scrapedData->getTitle()))) $score++;
@@ -564,6 +565,7 @@ class ProductMapper implements ProductMapperInterface
         if (!empty($scrapedData->getImageUrl())) $score++;
         if ($scrapedData->getRating() !== null) $score++;
         if ($scrapedData->getRatingCount() > 0) $score++;
+        if (!empty($scrapedData->getPlatformId())) $score++;
 
         return round($score / $maxScore, 2);
     }
