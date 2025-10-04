@@ -92,98 +92,98 @@ class ProductController extends Controller
      *         in="query",
      *         description="Number of items per page",
      *         required=false,
-     *         @OA\Schema(type="integer", minimum=1, maximum=100, default=15, example=15)
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, default=20, example=20)
      *     ),
      *     @OA\Parameter(
      *         name="platform",
      *         in="query",
      *         description="Filter by platform",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"amazon", "jumia"}, example="amazon")
+     *         @OA\Schema(type="string", enum={"amazon", "jumia"})
      *     ),
      *     @OA\Parameter(
      *         name="search",
      *         in="query",
      *         description="Search in product title",
      *         required=false,
-     *         @OA\Schema(type="string", maxLength=255, example="wireless headphones")
+     *         @OA\Schema(type="string", maxLength=255)
      *     ),
      *     @OA\Parameter(
      *         name="min_price",
      *         in="query",
      *         description="Minimum price filter",
      *         required=false,
-     *         @OA\Schema(type="number", format="float", minimum=0, example=50.00)
+     *         @OA\Schema(type="number", format="float", minimum=0)
      *     ),
      *     @OA\Parameter(
      *         name="max_price",
      *         in="query",
      *         description="Maximum price filter",
      *         required=false,
-     *         @OA\Schema(type="number", format="float", minimum=0, example=500.00)
+     *         @OA\Schema(type="number", format="float", minimum=0)
      *     ),
      *     @OA\Parameter(
      *         name="min_rating",
      *         in="query",
      *         description="Minimum rating filter",
      *         required=false,
-     *         @OA\Schema(type="number", format="float", minimum=0, maximum=5, example=4.0)
+     *         @OA\Schema(type="number", format="float", minimum=0, maximum=5)
      *     ),
      *     @OA\Parameter(
      *         name="max_rating",
      *         in="query",
      *         description="Maximum rating filter",
      *         required=false,
-     *         @OA\Schema(type="number", format="float", minimum=0, maximum=5, example=5.0)
+     *         @OA\Schema(type="number", format="float", minimum=0, maximum=5)
      *     ),
      *     @OA\Parameter(
      *         name="category",
      *         in="query",
      *         description="Filter by platform category",
      *         required=false,
-     *         @OA\Schema(type="string", maxLength=255, example="Electronics")
+     *         @OA\Schema(type="string", maxLength=255)
      *     ),
      *     @OA\Parameter(
      *         name="currency",
      *         in="query",
      *         description="Filter by price currency (ISO 4217)",
      *         required=false,
-     *         @OA\Schema(type="string", maxLength=3, example="USD")
+     *         @OA\Schema(type="string", maxLength=3)
      *     ),
      *     @OA\Parameter(
      *         name="is_active",
      *         in="query",
      *         description="Filter by active status",
      *         required=false,
-     *         @OA\Schema(type="boolean", example=true)
+     *         @OA\Schema(type="boolean")
      *     ),
      *     @OA\Parameter(
      *         name="sort_by",
      *         in="query",
      *         description="Field to sort by",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"created_at", "updated_at", "price", "rating", "title"}, default="created_at", example="price")
+     *         @OA\Schema(type="string", enum={"created_at", "updated_at", "price", "rating", "title"}, example="created_at")
      *     ),
      *     @OA\Parameter(
      *         name="sort_order",
      *         in="query",
      *         description="Sort direction",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"asc", "desc"}, default="desc", example="asc")
+     *         @OA\Schema(type="string", enum={"asc", "desc"}, example="desc")
      *     ),
      *     @OA\Parameter(
      *         name="created_after",
      *         in="query",
      *         description="Filter products created after this date",
      *         required=false,
-     *         @OA\Schema(type="string", format="date", example="2025-01-01")
+     *         @OA\Schema(type="string", format="date")
      *     ),
      *     @OA\Parameter(
      *         name="created_before",
      *         in="query",
      *         description="Filter products created before this date",
      *         required=false,
-     *         @OA\Schema(type="string", format="date", example="2025-12-31")
+     *         @OA\Schema(type="string", format="date")
      *     ),
      *     @OA\Response(
      *         response=200,
@@ -193,19 +193,39 @@ class ProductController extends Controller
      *             @OA\Property(property="message", type="string", example="Products retrieved successfully"),
      *             @OA\Property(
      *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Product")
+     *             ),
+     *             @OA\Property(
+     *                 property="meta",
      *                 type="object",
-     *                 @OA\Property(
-     *                     property="data",
-     *                     type="array",
-     *                     @OA\Items(ref="#/components/schemas/Product")
-     *                 ),
      *                 @OA\Property(property="current_page", type="integer", example=1),
      *                 @OA\Property(property="per_page", type="integer", example=15),
      *                 @OA\Property(property="total", type="integer", example=100),
      *                 @OA\Property(property="last_page", type="integer", example=7),
      *                 @OA\Property(property="from", type="integer", example=1),
      *                 @OA\Property(property="to", type="integer", example=15)
-     *             )
+     *             ),
+     *             @OA\Property(
+     *                 property="sorting",
+     *                 type="object",
+     *                 @OA\Property(property="sort_by", type="string", example="price"),
+     *                 @OA\Property(property="sort_order", type="string", example="asc")
+     *             ),
+     *             @OA\Property(
+     *                 property="filters_applied",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="platform",
+     *                     type="object",
+     *                     @OA\Property(property="label", type="string", example="Platform"),
+     *                     @OA\Property(property="value", type="string", example="amazon")
+     *                 )
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object"
+     *            )
      *         )
      *     ),
      *     @OA\Response(
@@ -266,7 +286,7 @@ class ProductController extends Controller
 
             // Extract pagination and sorting
             $page = (int) ($validated['page'] ?? 1);
-            $perPage = (int) ($validated['perPage'] ?? 15);
+            $perPage = (int) ($validated['per_page'] ?? 15);
             $sortBy = $validated['sort_by'] ?? 'created_at';
             $sortOrder = $validated['sort_order'] ?? 'desc';
 
@@ -295,7 +315,7 @@ class ProductController extends Controller
             );
 
             if ($result['success']) {
-                return ApiStdResponse::successResponse(
+                return ApiStdResponse::successResponsePaginated(
                     $result,
                     'Products retrieved successfully',
                     200

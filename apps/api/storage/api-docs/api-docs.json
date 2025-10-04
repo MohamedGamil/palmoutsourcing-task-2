@@ -45,10 +45,10 @@
                         "required": false,
                         "schema": {
                             "type": "integer",
-                            "default": 15,
+                            "default": 20,
                             "maximum": 100,
                             "minimum": 1,
-                            "example": 15
+                            "example": 20
                         }
                     },
                     {
@@ -61,8 +61,7 @@
                             "enum": [
                                 "amazon",
                                 "jumia"
-                            ],
-                            "example": "amazon"
+                            ]
                         }
                     },
                     {
@@ -72,8 +71,7 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "maxLength": 255,
-                            "example": "wireless headphones"
+                            "maxLength": 255
                         }
                     },
                     {
@@ -84,8 +82,7 @@
                         "schema": {
                             "type": "number",
                             "format": "float",
-                            "minimum": 0,
-                            "example": 50
+                            "minimum": 0
                         }
                     },
                     {
@@ -96,8 +93,7 @@
                         "schema": {
                             "type": "number",
                             "format": "float",
-                            "minimum": 0,
-                            "example": 500
+                            "minimum": 0
                         }
                     },
                     {
@@ -109,8 +105,7 @@
                             "type": "number",
                             "format": "float",
                             "maximum": 5,
-                            "minimum": 0,
-                            "example": 4
+                            "minimum": 0
                         }
                     },
                     {
@@ -122,8 +117,7 @@
                             "type": "number",
                             "format": "float",
                             "maximum": 5,
-                            "minimum": 0,
-                            "example": 5
+                            "minimum": 0
                         }
                     },
                     {
@@ -133,8 +127,7 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "maxLength": 255,
-                            "example": "Electronics"
+                            "maxLength": 255
                         }
                     },
                     {
@@ -144,8 +137,7 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "maxLength": 3,
-                            "example": "USD"
+                            "maxLength": 3
                         }
                     },
                     {
@@ -154,8 +146,7 @@
                         "description": "Filter by active status",
                         "required": false,
                         "schema": {
-                            "type": "boolean",
-                            "example": true
+                            "type": "boolean"
                         }
                     },
                     {
@@ -165,7 +156,6 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "default": "created_at",
                             "enum": [
                                 "created_at",
                                 "updated_at",
@@ -173,7 +163,7 @@
                                 "rating",
                                 "title"
                             ],
-                            "example": "price"
+                            "example": "created_at"
                         }
                     },
                     {
@@ -183,12 +173,11 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "default": "desc",
                             "enum": [
                                 "asc",
                                 "desc"
                             ],
-                            "example": "asc"
+                            "example": "desc"
                         }
                     },
                     {
@@ -198,8 +187,7 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "format": "date",
-                            "example": "2025-01-01"
+                            "format": "date"
                         }
                     },
                     {
@@ -209,8 +197,7 @@
                         "required": false,
                         "schema": {
                             "type": "string",
-                            "format": "date",
-                            "example": "2025-12-31"
+                            "format": "date"
                         }
                     }
                 ],
@@ -230,13 +217,13 @@
                                             "example": "Products retrieved successfully"
                                         },
                                         "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Product"
+                                            }
+                                        },
+                                        "meta": {
                                             "properties": {
-                                                "data": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "$ref": "#/components/schemas/Product"
-                                                    }
-                                                },
                                                 "current_page": {
                                                     "type": "integer",
                                                     "example": 1
@@ -262,6 +249,40 @@
                                                     "example": 15
                                                 }
                                             },
+                                            "type": "object"
+                                        },
+                                        "sorting": {
+                                            "properties": {
+                                                "sort_by": {
+                                                    "type": "string",
+                                                    "example": "price"
+                                                },
+                                                "sort_order": {
+                                                    "type": "string",
+                                                    "example": "asc"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "filters_applied": {
+                                            "properties": {
+                                                "platform": {
+                                                    "properties": {
+                                                        "label": {
+                                                            "type": "string",
+                                                            "example": "Platform"
+                                                        },
+                                                        "value": {
+                                                            "type": "string",
+                                                            "example": "amazon"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "errors": {
                                             "type": "object"
                                         }
                                     },

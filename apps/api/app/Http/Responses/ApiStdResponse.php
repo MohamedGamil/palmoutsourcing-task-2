@@ -37,4 +37,20 @@ class ApiStdResponse
             'errors' => [],
         ], $statusCode);
     }
+
+    /**
+     * Get standard success response format for paginated results
+     */
+    public static function successResponsePaginated($data = null, string $message = 'Success', int $statusCode = 200): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data' => $data['data'] ?? [],
+            'meta' => $data['meta'] ?? [],
+            'sorting' => $data['sorting'] ?? [],
+            'filters_applied' => $data['filters_applied'] ?? [],
+            'errors' => (Object) [],
+        ], $statusCode);
+    }
 }
