@@ -840,7 +840,7 @@ Cache::forget('product:stats')
 ---
 
 ### Additional Documentation References
-- [SRS.md](docs/SRS.md) - Complete requirements specification
+- [SRS-v1.1.md](docs/SRS-v1.1.md) - Complete requirements specification
 - [API Documentation](docs/api-quick-reference.md) - API endpoints reference
 - [Domain Layer](docs/domain-layer.md) - DDD implementation details
 - [Queue Scraping](docs/queue-based-scraping.md) - Scraping system guide

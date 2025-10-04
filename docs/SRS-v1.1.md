@@ -3,7 +3,7 @@
 
 ### Document Information
 - **Project Name:** Web Scraping Service
-- **Version:** 1.0
+- **Version:** 1.1
 - **Date:** 03-10-2025
 - **Author:** Mohamed Gamil
 
