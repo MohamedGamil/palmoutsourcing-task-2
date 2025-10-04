@@ -3,6 +3,7 @@ import { Poppins, Geist_Mono } from "next/font/google";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import CSRFProvider from "@/components/CSRFProvider";
+import ReactQueryProvider from "@/components/ReactQueryProvider";
 import "./globals.css";
 import { APP_DESCRIPTION, APP_NAME } from "@/constants";
 
@@ -32,13 +33,15 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
       >
-        <CSRFProvider>
-          <Navigation />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer />
-        </CSRFProvider>
+        <ReactQueryProvider>
+          <CSRFProvider>
+            <Navigation />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer />
+          </CSRFProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
