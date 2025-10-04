@@ -113,10 +113,10 @@ export const useCreateProduct = (
     onSuccess: (newProduct) => {
       // Invalidate product lists to refetch with new product
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-      
+
       // Invalidate stats
       queryClient.invalidateQueries({ queryKey: productKeys.stats() });
-      
+
       // Optionally set the new product in cache
       queryClient.setQueryData(productKeys.detail(newProduct.id), newProduct);
     },
@@ -139,10 +139,10 @@ export const useUpdateProduct = (
     onSuccess: (updatedProduct, variables) => {
       // Update the product in cache
       queryClient.setQueryData(productKeys.detail(variables.id), updatedProduct);
-      
+
       // Invalidate product lists to show updated data
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-      
+
       // Invalidate stats if active status changed
       if (variables.data.is_active !== undefined) {
         queryClient.invalidateQueries({ queryKey: productKeys.stats() });
@@ -166,10 +166,10 @@ export const useDeleteProduct = (
     onSuccess: (_, deletedId) => {
       // Remove product from cache
       queryClient.removeQueries({ queryKey: productKeys.detail(deletedId) });
-      
+
       // Invalidate product lists
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-      
+
       // Invalidate stats
       queryClient.invalidateQueries({ queryKey: productKeys.stats() });
     },
@@ -189,11 +189,12 @@ export const useScrapeProducts = (
   return useMutation({
     mutationFn: (data: ScrapeProductsRequest) => productService.scrapeProducts(data),
     onSuccess: (response, variables) => {
+      // TODO: Fix invalidation
       // Invalidate affected products
-      variables.product_ids.forEach((id) => {
-        queryClient.invalidateQueries({ queryKey: productKeys.detail(id) });
-      });
-      
+      // variables.urls.forEach((url) => {
+      //   queryClient.invalidateQueries({ queryKey: productKeys.detail(url) });
+      // });
+
       // Invalidate product lists to show updated scrape data
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
     },
@@ -216,10 +217,10 @@ export const useScrapeProduct = (
     onSuccess: (product) => {
       // Invalidate the updated product
       queryClient.invalidateQueries({ queryKey: productKeys.detail(product.id) });
-      
+
       // Invalidate product lists to show updated data
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-      
+
       // Invalidate stats
       queryClient.invalidateQueries({ queryKey: productKeys.stats() });
     },
