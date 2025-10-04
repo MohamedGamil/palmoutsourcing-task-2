@@ -124,5 +124,8 @@ web-sh:
 web-dev:
 	cd apps/web && npm run dev && cd ../../
 
+web-build:
+	cd apps/web && npm run build && cd ../../
+
 %:
 	@:

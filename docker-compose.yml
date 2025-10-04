@@ -95,7 +95,7 @@ services:
       retries: 3
       start_period: 10s
 
-  # Next.js dev
+  # Next.js (production standalone)
   web:
     container_name: web
     build:
@@ -107,10 +107,7 @@ services:
       PORT: 3000
       NEXT_PUBLIC_API_URL: "http://localhost:8081"
     restart: unless-stopped
-    volumes:
-      - ./apps/web:/app
-    depends_on:
-      - laravel.test
+    # No volumes for production standalone build
     networks: [sail]
 
 networks:
