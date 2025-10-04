@@ -62,7 +62,6 @@ export const productService = {
    * Get a single product by ID
    */
   async getProduct(id: number): Promise<Product> {
-    // Laravel returns: { success, message, data: Product, ... }
     const response = await api.get<Product>(`/products/${id}`);
     return response.data;
   },
@@ -71,7 +70,6 @@ export const productService = {
    * Create a new product (watch a product URL)
    */
   async createProduct(data: CreateProductRequest): Promise<Product> {
-    // Laravel returns: { success, message, data: Product, ... }
     const response = await api.post<Product>('/products', data);
     return response.data;
   },
@@ -80,7 +78,6 @@ export const productService = {
    * Update a product
    */
   async updateProduct(id: number, data: UpdateProductRequest): Promise<Product> {
-    // Laravel returns: { success, message, data: Product, ... }
     const response = await api.patch<Product>(`/products/${id}`, data);
     return response.data;
   },
@@ -89,7 +86,6 @@ export const productService = {
    * Delete a product
    */
   async deleteProduct(id: number): Promise<void> {
-    // Laravel returns: { success, message, data: null, ... }
     await api.delete(`/products/${id}`);
     // No return value needed for delete
   },
@@ -97,9 +93,16 @@ export const productService = {
   /**
    * Manually trigger scraping for products
    */
-  async scrapeProducts(data: ScrapeProductsRequest): Promise<ScrapeProductsResponse> {
-    // Laravel returns: { success, message, data: ScrapeProductsResponse, ... }
-    const response = await api.post<ScrapeProductsResponse>('/products/scrape', data);
+  async scrapeProducts(urls: ScrapeProductsRequest): Promise<ScrapeProductsResponse> {
+    const response = await api.post<ScrapeProductsResponse>('/scraping/batch', { urls });
+    return response.data;
+  },
+
+  /**
+   * Rescrape a single product by URL (forces update of existing product)
+   */
+  async scrapeProduct(url: string): Promise<Product> {
+    const response = await api.post<Product>('/scraping/scrape', { url });
     return response.data;
   },
 
@@ -107,7 +110,6 @@ export const productService = {
    * Get product statistics
    */
   async getStats(): Promise<ProductStats> {
-    // Laravel returns: { success, message, data: ProductStats, ... }
     const response = await api.get<ProductStats>('/products/statistics');
     return response.data;
   },

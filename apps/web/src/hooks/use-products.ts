@@ -202,6 +202,32 @@ export const useScrapeProducts = (
 };
 
 /**
+ * Hook: Rescrape a single product by URL
+ * Forces update of existing product data
+ * @param options - React Query mutation options
+ */
+export const useScrapeProduct = (
+  options?: UseMutationOptions<Product, Error, string>
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (url: string) => productService.scrapeProduct(url),
+    onSuccess: (product) => {
+      // Invalidate the updated product
+      queryClient.invalidateQueries({ queryKey: productKeys.detail(product.id) });
+      
+      // Invalidate product lists to show updated data
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      
+      // Invalidate stats
+      queryClient.invalidateQueries({ queryKey: productKeys.stats() });
+    },
+    ...options,
+  });
+};
+
+/**
  * Hook: Prefetch product details
  * Useful for optimistic loading
  */

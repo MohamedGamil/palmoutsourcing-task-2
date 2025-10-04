@@ -4,7 +4,7 @@ import PageTitle from '@/components/PageTitle';
 import Modal from '@/components/Modal';
 import AddProductForm from '@/components/AddProductForm';
 import { useState, useEffect, useRef } from 'react';
-import { useProducts, useDeleteProduct, useUpdateProduct, Product, type Platform } from '@/lib/product-api';
+import { useProducts, useDeleteProduct, useUpdateProduct, useScrapeProduct, Product, type Platform } from '@/lib/product-api';
 import Image from 'next/image';
 
 type PlatformFilter = 'all' | Platform;
@@ -40,6 +40,12 @@ export default function ProductsPage() {
   const updateProduct = useUpdateProduct({
     onError: (err) => {
       setError(err instanceof Error ? err.message : 'Failed to update product');
+    },
+  });
+
+  const scrapeProduct = useScrapeProduct({
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : 'Failed to rescrape product');
     },
   });
 
@@ -115,6 +121,15 @@ export default function ProductsPage() {
       id: product.id,
       data: { is_active: !product.is_active },
     });
+  };
+
+  const handleRescrapeProduct = (product: Product) => {
+    if (!confirm(`Rescrape "${product.title}"?\n\nThis will fetch the latest data from ${product.platform}.`)) {
+      return;
+    }
+
+    setError(null);
+    scrapeProduct.mutate(product.product_url);
   };
 
   const handleOpenAddModal = () => {
@@ -534,14 +549,22 @@ export default function ProductsPage() {
                   <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <button
                       onClick={() => handleToggleActive(product)}
-                      disabled={updateProduct.isPending}
+                      disabled={updateProduct.isPending || scrapeProduct.isPending}
                       className="cursor-pointer flex-1 text-xs font-medium px-3 py-1.5 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 disabled:opacity-50"
                     >
                       {product.is_active ? 'Deactivate' : 'Activate'}
                     </button>
                     <button
+                      onClick={() => handleRescrapeProduct(product)}
+                      disabled={scrapeProduct.isPending || updateProduct.isPending}
+                      className="cursor-pointer flex-1 text-xs font-medium px-3 py-1.5 rounded bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800 disabled:opacity-50"
+                      title="Rescrape product data"
+                    >
+                      {scrapeProduct.isPending ? 'Scraping...' : 'Rescrape'}
+                    </button>
+                    <button
                       onClick={() => handleDeleteProduct(product.id)}
-                      disabled={deleteProduct.isPending}
+                      disabled={deleteProduct.isPending || scrapeProduct.isPending || updateProduct.isPending}
                       className="cursor-pointer text-xs font-medium px-3 py-1.5 rounded bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800 disabled:opacity-50"
                     >
                       Delete

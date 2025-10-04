@@ -123,7 +123,7 @@ export interface UpdateProductRequest {
 }
 
 export interface ScrapeProductsRequest {
-  product_ids: number[];
+  urls: string[];
 }
 
 export interface ScrapeProductsResponse {

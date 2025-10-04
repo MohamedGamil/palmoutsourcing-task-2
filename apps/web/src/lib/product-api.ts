@@ -12,6 +12,7 @@ export {
   useUpdateProduct,
   useDeleteProduct,
   useScrapeProducts,
+  useScrapeProduct,
   usePrefetchProduct,
   useOptimisticProduct,
   productKeys,
