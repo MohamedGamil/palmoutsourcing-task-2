@@ -78,7 +78,7 @@ class CreateProductUseCase
 
             return [
                 'success' => true,
-                'product' => $this->formatProduct($product),
+                'data' => $this->formatProduct($product),
                 'message' => 'Product created and scraped successfully',
             ];
 
