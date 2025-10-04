@@ -359,17 +359,40 @@ export default function ProductsPage() {
             {products.map((product) => (
               <div key={product.id} className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
                 {/* Product Image */}
-                {product.image_url && (
-                  <div className="relative h-48 w-full bg-gray-100 dark:bg-gray-700">
+                <div className="relative h-48 min-h-[12rem] max-h-[12rem] w-full bg-gray-100 dark:bg-gray-700">
+                  {product.image_url ? (
                     <Image
                       src={product.image_url}
                       alt={product.title}
                       fill
                       className="object-contain p-4"
                       unoptimized
+                      onError={(e) => {
+                        // Fallback to placeholder on error
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `
+                            <div class="flex items-center justify-center h-full cursor-default select-none">
+                              <div class="text-center">
+                                <div class="text-6xl mb-2">📦</div>
+                                <p class="text-sm text-gray-500 dark:text-gray-400">Image not available</p>
+                              </div>
+                            </div>
+                          `;
+                        }
+                      }}
                     />
-                  </div>
-                )}
+                  ) : (
+                    <div className="flex items-center justify-center h-full cursor-default select-none">
+                      <div className="text-center">
+                        <div className="text-6xl mb-2">📦</div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Product has no image</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 {/* Product Info */}
                 <div className="px-4 py-4">
