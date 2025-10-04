@@ -3,7 +3,7 @@
 import PageTitle from '@/components/PageTitle';
 import Modal from '@/components/Modal';
 import AddProductForm from '@/components/AddProductForm';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useProducts, useDeleteProduct, useUpdateProduct, Product, type Platform } from '@/lib/product-api';
 import Image from 'next/image';
 
@@ -28,6 +28,7 @@ export default function ProductsPage() {
 
   const products = data?.data || [];
   const pagination = data?.meta;
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mutations
   const deleteProduct = useDeleteProduct({
@@ -41,6 +42,21 @@ export default function ProductsPage() {
       setError(err instanceof Error ? err.message : 'Failed to update product');
     },
   });
+
+  const updateSearchInput = (value: string) => {
+    setSearchInput(value);
+
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Set new timer to update search query after 500ms of no typing
+    debounceTimerRef.current = setTimeout(() => {
+      setSearchQuery(value);
+      setCurrentPage(1);
+    }, 500);
+  };
 
   const handleFilterChange = (newFilter: PlatformFilter) => {
     setPlatformFilter(newFilter);
@@ -130,6 +146,15 @@ export default function ProductsPage() {
         return '🏪';
     }
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   const PageTitleSection = (
     <PageTitle
@@ -285,7 +310,7 @@ export default function ProductsPage() {
                   <input
                     type="text"
                     value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
+                    onChange={(e) => updateSearchInput(e.target.value)}
                     placeholder="Search products by title..."
                     className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400"
                   />
