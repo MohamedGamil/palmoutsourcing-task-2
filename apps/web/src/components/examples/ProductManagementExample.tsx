@@ -120,11 +120,11 @@ export default function ProductManagementExample() {
             </div>
             <div className="bg-yellow-100 p-4 rounded-lg">
               <p className="text-sm text-gray-600">Amazon</p>
-              <p className="text-3xl font-bold">{stats.platforms.amazon}</p>
+              <p className="text-3xl font-bold">{stats.by_platform.amazon}</p>
             </div>
             <div className="bg-purple-100 p-4 rounded-lg">
               <p className="text-sm text-gray-600">Jumia</p>
-              <p className="text-3xl font-bold">{stats.platforms.jumia}</p>
+              <p className="text-3xl font-bold">{stats.by_platform.jumia}</p>
             </div>
           </div>
         )}

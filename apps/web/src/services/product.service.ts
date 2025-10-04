@@ -88,11 +88,10 @@ export const productService = {
 
   /**
    * Get product statistics
-   * Note: This endpoint might need to be implemented in the Laravel backend
    */
   async getStats(): Promise<ProductStats> {
-    const response = await api.get<SingleResponse<ProductStats>>('/products/stats');
-    return response.data.data;
+    const response = await api.get<ProductStats>('/products/statistics');
+    return response.data;
   },
 };
 

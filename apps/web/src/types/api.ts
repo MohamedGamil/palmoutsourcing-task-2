@@ -58,12 +58,31 @@ export interface ApiError {
 export interface ProductStats {
   total_products: number;
   active_products: number;
-  total_scraped: number;
-  platforms: {
+  inactive_products: number;
+
+  by_platform: {
     amazon: number;
     jumia: number;
   };
-  recent_scrapes: number;
+
+  price_stats: {
+    min: number;
+    max: number;
+    avg: number;
+  };
+
+  rating_stats: {
+    min: number;
+    max: number;
+    avg: number;
+  };
+
+  scraping_stats: {
+    total_scrapes: number;
+    avg_scrapes_per_product: number;
+    products_never_scraped: number;
+    products_scraped_today: number;
+  };
 }
 
 // Request types
