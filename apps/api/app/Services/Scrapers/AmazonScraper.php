@@ -250,6 +250,17 @@ class AmazonScraper implements PlatformScraperInterface
                 $platformId = $this->extractPlatformId($url, $crawler);
             }
 
+            Log::debug('[AMAZON-SCRAPER] Extracted product data', [
+                'title' => $title,
+                'price' => $price->toFloat(),
+                'currency' => $priceCurrency,
+                'rating' => $rating,
+                'rating_count' => $ratingCount,
+                'category' => $category,
+                'image_url' => $imageUrl,
+                'platform_id' => $platformId,
+            ]);
+
             return new ScrapedProductData(
                 title: $title,
                 price: $price,

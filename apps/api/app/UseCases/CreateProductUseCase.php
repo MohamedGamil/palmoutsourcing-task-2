@@ -37,11 +37,12 @@ class CreateProductUseCase
      * 
      * @param string $productUrl The product URL to scrape
      * @param string $platform The platform (amazon or jumia)
+     * @param bool $force Whether to force re-scraping even if recently scraped
      * @return array Result with success status and product data or error
      * 
      * @throws \InvalidArgumentException If URL or platform is invalid
      */
-    public function execute(string $productUrl, string $platform): array
+    public function execute(string $productUrl, string $platform, bool $force = false): array
     {
         Log::info('[CREATE-PRODUCT-USE-CASE] Starting product creation', [
             'url' => $productUrl,
@@ -54,7 +55,7 @@ class CreateProductUseCase
             $platformVO = Platform::fromString($platform);
 
             // Check if product already exists
-            if (ProductRepository::existsByUrl($url, $platformVO)) {
+            if ($force === false && ProductRepository::existsByUrl($url, $platformVO)) {
                 Log::warning('[CREATE-PRODUCT-USE-CASE] Product already exists', [
                     'url' => $productUrl,
                     'platform' => $platform,

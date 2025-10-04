@@ -147,7 +147,8 @@ class ScrapingController extends Controller
             // Use CreateProductUseCase to scrape and store
             $result = $this->createProductUseCase->execute(
                 $validated['url'],
-                $platform
+                $platform,
+                true
             );
 
             if ($result['success']) {

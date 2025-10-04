@@ -57,16 +57,20 @@ class UrlSanitizer
                 $sanitized .= ':' . $parsed['port'];
             }
         }
-        
+
         // Add path (remove trailing slash)
         if (isset($parsed['path'])) {
             $path = rtrim($parsed['path'], '/');
+            $refPos = stripos($path, '/ref=');
+            $length = $refPos !== false ? $refPos : -1;
+            $path = $length > -1 ? substr($path, 0, $length) : $path;
+
             // Keep empty path as empty (don't add trailing slash)
             if ($path !== '') {
                 $sanitized .= $path;
             }
         }
-        
+
         // Explicitly DO NOT add query parameters or fragments
         // This ensures all URLs are compared without query strings
         
