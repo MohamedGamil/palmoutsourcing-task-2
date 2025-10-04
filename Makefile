@@ -68,7 +68,7 @@ install:
 # --- DB helpers --------------------------------------------------------------
 
 migrate:
-	$(SAIL_CMD) artisan migrate --force
+	$(SAIL_CMD) artisan migrate --seed --force
 
 fresh:
 	$(SAIL_CMD) artisan migrate:fresh --seed --force
