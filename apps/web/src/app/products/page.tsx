@@ -12,6 +12,7 @@ type PlatformFilter = 'all' | Platform;
 export default function ProductsPage() {
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // Input field state
   const [currentPage, setCurrentPage] = useState(1);
   const [perPage, setPerPage] = useState(12);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -58,6 +59,18 @@ export default function ProductsPage() {
   const handlePerPageChange = (newPerPage: number) => {
     setPerPage(newPerPage);
     setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSearchQuery(searchInput);
+    setCurrentPage(1); // Reset to first page when searching
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setSearchQuery('');
+    setCurrentPage(1);
   };
 
   const handleProductCreated = (product: Product) => {
@@ -167,7 +180,7 @@ export default function ProductsPage() {
                 <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
               </svg>
             </button>
-            
+
             {/* Page Numbers */}
             {Array.from({ length: Math.min(5, pagination.last_page) }, (_, i) => {
               let pageNumber;
@@ -185,11 +198,10 @@ export default function ProductsPage() {
                 <button
                   key={pageNumber}
                   onClick={() => handlePageChange(pageNumber)}
-                  className={`cursor-pointer relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                    pageNumber === currentPage
+                  className={`cursor-pointer relative inline-flex items-center px-4 py-2 border text-sm font-medium ${pageNumber === currentPage
                       ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 dark:bg-blue-900 dark:border-blue-600 dark:text-blue-200'
                       : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700'
-                  }`}
+                    }`}
                 >
                   {pageNumber}
                 </button>
@@ -245,25 +257,76 @@ export default function ProductsPage() {
         {/* Header */}
         {PageTitleSection}
 
+        {/* Search Bar */}
+        <div className="mb-6">
+        </div>
+
         {/* Filter Buttons and Per Page Selector */}
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex flex-wrap gap-2">
-            {(['all', 'amazon', 'jumia'] as const).map((platform) => (
-              <button
-                key={platform}
-                onClick={() => handleFilterChange(platform)}
-                className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors cursor-pointer ${
-                  platformFilter === platform
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
-              >
-                {platform === 'all' ? 'All Products' : 
-                 platform.charAt(0).toUpperCase() + platform.slice(1)}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-2">
+              {(['all', 'amazon', 'jumia'] as const).map((platform) => (
+                <button
+                  key={platform}
+                  onClick={() => handleFilterChange(platform)}
+                  className={`px-4 py-2 rounded-lg text-sm font-bold transition-colors cursor-pointer ${platformFilter === platform
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
+                >
+                  {platform === 'all' ? 'All Products' :
+                    platform.charAt(0).toUpperCase() + platform.slice(1)}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <form onSubmit={handleSearchSubmit} className="flex gap-2">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder="Search products by title..."
+                    className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400"
+                  />
+                  <svg
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                {/* <button
+                  type="submit"
+                  className="cursor-pointer px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isLoading}
+                >
+                  Search
+                </button> */}
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="cursor-pointer px-4 py-2 bg-gray-200 text-gray-700 text-sm font-bold rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                  >
+                    Clear
+                  </button>
+                )}
+              </form>
+              {/* {searchQuery && (
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  Searching for: <span className="font-semibold">&quot;{searchQuery}&quot;</span>
+                </p>
+              )} */}
+            </div>
           </div>
-          
+
           <div className="flex items-end space-x-4">
             <div className="flex items-center space-x-2">
               <label htmlFor="per-page" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -302,17 +365,6 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Pagination Info and Refresh Button */}
-        {/* <div className="mb-6 flex justify-between items-center">
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {pagination ? (
-              <>Page {pagination.current_page} of {pagination.last_page} pages - Showing {pagination.per_page} tasks per page</>
-            ) : (
-              <>Showing {tasks.length} tasks</>
-            )}
-          </div>
-        </div> */}
-
         <div className='block pt-2 pb-6'>
           {PaginationSection}
         </div>
@@ -323,7 +375,7 @@ export default function ProductsPage() {
             <div className="flex">
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                  Error loading tasks
+                  Error loading products
                 </h3>
                 <div className="mt-2 text-sm text-red-700 dark:text-red-300">
                   {error}
@@ -349,8 +401,8 @@ export default function ProductsPage() {
               {platformFilter === 'all' ? 'No products found' : `No ${platformFilter} products`}
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
-              {platformFilter === 'all' 
-                ? 'Get started by adding your first product to track.' 
+              {platformFilter === 'all'
+                ? 'Get started by adding your first product to track.'
                 : `There are no ${platformFilter} products at the moment.`}
             </p>
           </div>
@@ -393,7 +445,7 @@ export default function ProductsPage() {
                     </div>
                   )}
                 </div>
-                
+
                 {/* Product Info */}
                 <div className="px-4 py-4">
                   <div className="relative min-h-[190px]">
@@ -402,21 +454,20 @@ export default function ProductsPage() {
                         {product.title}
                       </h3>
                     </div>
-                    
+
                     {/* Platform Badge */}
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${getPlatformColor(product.platform)}`}>
                         {getPlatformIcon(product.platform)} {product.platform.toUpperCase()}
                       </span>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
-                        product.is_active 
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${product.is_active
                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                           : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                      }`}>
+                        }`}>
                         {product.is_active ? '● Active' : '○ Inactive'}
                       </span>
                     </div>
-                    
+
                     {/* Price and Rating */}
                     <div className="space-y-1 mb-3">
                       {product.price && (
@@ -430,7 +481,7 @@ export default function ProductsPage() {
                         </p>
                       )}
                     </div>
-                    
+
                     {/* Timestamps */}
                     <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1 mb-3">
                       <p>Added: {new Date(product.created_at).toLocaleDateString()}</p>
@@ -439,7 +490,7 @@ export default function ProductsPage() {
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Actions */}
                   <div className="flex gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                     <button
@@ -466,7 +517,7 @@ export default function ProductsPage() {
         {/* Pagination */}
         {PaginationSection}
       </div>
-      
+
       {/* Add Product Modal */}
       <Modal isOpen={isAddModalOpen} onClose={handleCloseAddModal} title="Add New Product">
         <AddProductForm
