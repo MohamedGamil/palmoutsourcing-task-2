@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Services\ProductCacheService;
 use App\UseCases\BatchCreateProductsUseCase;
 use App\UseCases\CreateProductUseCase;
 use App\UseCases\DeleteProductUseCase;
@@ -37,6 +38,11 @@ class UseCasesServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // ProductCacheService - Centralized caching for product operations
+        $this->app->singleton(ProductCacheService::class, function ($app) {
+            return new ProductCacheService();
+        });
+
         // CreateProductUseCase - Create product from URL
         $this->app->singleton(CreateProductUseCase::class, function ($app) {
             return new CreateProductUseCase(
@@ -77,7 +83,9 @@ class UseCasesServiceProvider extends ServiceProvider
 
         // FetchProductsUseCase - Fetch products with filtering and pagination
         $this->app->singleton(FetchProductsUseCase::class, function ($app) {
-            return new FetchProductsUseCase();
+            return new FetchProductsUseCase(
+                $app->make(ProductCacheService::class)
+            );
         });
     }
 
@@ -97,6 +105,7 @@ class UseCasesServiceProvider extends ServiceProvider
     public function provides(): array
     {
         return [
+            ProductCacheService::class,
             CreateProductUseCase::class,
             UpdateProductUseCase::class,
             BatchCreateProductsUseCase::class,

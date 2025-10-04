@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\UseCases;
 
 use App\Models\Product as ProductModel;
+use App\Services\ProductCacheService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -13,12 +14,15 @@ use Illuminate\Database\Eloquent\Builder;
  * 
  * Fetches products from the database in a paginated format with comprehensive
  * filtering support (platform, price range, rating, category, search, etc.).
+ * Implements caching for improved performance.
  * 
  * Requirements Implemented:
  * - REQ-ARCH-007: App layer implements use-cases for application logic
  * - REQ-API-002: GET endpoint for retrieving products
  * - REQ-FILTER-001 to REQ-FILTER-013: Filtering and pagination requirements
  * - REQ-SCALE-002: API SHALL support pagination
+ * - REQ-PERF-004: System SHALL implement caching for frequently accessed data
+ * - REQ-PERF-006: API responses SHALL be cached
  * 
  * @package App\UseCases
  */
@@ -34,8 +38,14 @@ class FetchProductsUseCase
      */
     private const MAX_PER_PAGE = 100;
 
+    public function __construct(
+        private ProductCacheService $cacheService
+    ) {}
+
     /**
      * Execute the fetch with filters and pagination
+     * 
+     * Implements caching as per REQ-PERF-006: API responses SHALL be cached
      * 
      * @param array $filters Associative array of filter criteria
      * @param int $page Current page number (1-indexed)
@@ -65,6 +75,24 @@ class FetchProductsUseCase
             $perPage = min(max(1, $perPage), self::MAX_PER_PAGE);
             $sortOrder = strtolower($sortOrder) === 'asc' ? 'asc' : 'desc';
 
+            // Generate cache key for this specific query
+            $cacheKey = $this->cacheService->generateListIdentifier(
+                $filters,
+                $page,
+                $perPage,
+                $sortBy,
+                $sortOrder
+            );
+
+            // Try to get cached result
+            $cachedResult = $this->cacheService->getCachedProductList($cacheKey);
+            if ($cachedResult !== null) {
+                Log::info('[FETCH-PRODUCTS-USE-CASE] Returning cached result', [
+                    'cache_key' => $cacheKey,
+                ]);
+                return $cachedResult;
+            }
+
             // Build the query with filters
             $query = $this->buildQuery($filters);
 
@@ -93,10 +121,18 @@ class FetchProductsUseCase
                 ],
             ];
 
+            // Cache the result for future requests
+            $this->cacheService->cacheProductList(
+                $cacheKey,
+                $result,
+                ProductCacheService::LIST_TTL
+            );
+
             Log::info('[FETCH-PRODUCTS-USE-CASE] Products fetched successfully', [
                 'total_results' => $paginator->total(),
                 'current_page' => $paginator->currentPage(),
                 'returned_count' => count($paginator->items()),
+                'cached' => true,
             ]);
 
             return $result;
@@ -279,6 +315,9 @@ class FetchProductsUseCase
     /**
      * Get product statistics
      * 
+     * Implements caching as per REQ-PERF-006: API responses SHALL be cached
+     * Uses short TTL (5 minutes) since statistics change frequently
+     * 
      * @return array Statistics about products in the database
      */
     public function getStatistics(): array
@@ -286,6 +325,13 @@ class FetchProductsUseCase
         Log::info('[FETCH-PRODUCTS-USE-CASE] Fetching product statistics');
 
         try {
+            // Try to get cached statistics
+            $cachedStats = $this->cacheService->getCachedStatistics();
+            if ($cachedStats !== null) {
+                Log::info('[FETCH-PRODUCTS-USE-CASE] Returning cached statistics');
+                return $cachedStats;
+            }
+
             $stats = [
                 'total_products' => ProductModel::count(),
                 'active_products' => ProductModel::where('is_active', true)->count(),
@@ -312,12 +358,17 @@ class FetchProductsUseCase
                 ],
             ];
 
-            Log::info('[FETCH-PRODUCTS-USE-CASE] Statistics fetched successfully', $stats);
-
-            return [
+            $result = [
                 'success' => true,
                 'statistics' => $stats,
             ];
+
+            // Cache the statistics with short TTL
+            $this->cacheService->cacheStatistics($result, ProductCacheService::STATS_TTL);
+
+            Log::info('[FETCH-PRODUCTS-USE-CASE] Statistics fetched and cached successfully', $stats);
+
+            return $result;
 
         } catch (\Exception $e) {
             Log::error('[FETCH-PRODUCTS-USE-CASE] Failed to fetch statistics', [
@@ -335,6 +386,8 @@ class FetchProductsUseCase
     /**
      * Get a single product by ID
      * 
+     * Implements caching as per REQ-PERF-006: API responses SHALL be cached
+     * 
      * @param int $productId The product ID
      * @return array Result with product data or error
      */
@@ -345,12 +398,34 @@ class FetchProductsUseCase
         ]);
 
         try {
+            // Try to get cached product
+            $cachedProduct = $this->cacheService->getCachedProduct($productId);
+            if ($cachedProduct !== null) {
+                Log::info('[FETCH-PRODUCTS-USE-CASE] Returning cached product', [
+                    'product_id' => $productId,
+                ]);
+                return $cachedProduct;
+            }
+
             $product = ProductModel::findOrFail($productId);
 
-            return [
+            $result = [
                 'success' => true,
                 'data' => $product,
             ];
+
+            // Cache the product
+            $this->cacheService->cacheProduct(
+                $productId,
+                $result,
+                ProductCacheService::DEFAULT_TTL
+            );
+
+            Log::info('[FETCH-PRODUCTS-USE-CASE] Product fetched and cached successfully', [
+                'product_id' => $productId,
+            ]);
+
+            return $result;
 
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             Log::warning('[FETCH-PRODUCTS-USE-CASE] Product not found', [

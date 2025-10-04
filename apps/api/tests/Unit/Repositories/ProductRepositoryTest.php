@@ -7,12 +7,14 @@ namespace Tests\Unit\Repositories;
 use Tests\TestCase;
 use App\Repositories\ProductRepository;
 use App\Models\Product as ProductModel;
+use App\Services\ProductCacheService;
 use Domain\Product\Entity\Product;
 use Domain\Product\ValueObject\Platform;
 use Domain\Product\ValueObject\Price;
 use Domain\Product\ValueObject\ProductUrl;
 use Domain\Product\Exception\ProductNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * Product Repository Test
@@ -29,7 +31,15 @@ class ProductRepositoryTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->repository = new ProductRepository(new ProductModel());
+        
+        // Mock Cache to prevent actual caching during tests
+        Cache::spy();
+        
+        // Create repository with required dependencies
+        $this->repository = new ProductRepository(
+            new ProductModel(),
+            new ProductCacheService()
+        );
     }
 
     /** @test */

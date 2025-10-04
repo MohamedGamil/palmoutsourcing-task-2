@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Models\Product as ProductModel;
+use App\Services\ProductCacheService;
 use Domain\Product\Entity\Product;
 use Domain\Product\Repository\ProductRepositoryInterface;
 use Domain\Product\ValueObject\Platform;
@@ -19,20 +20,26 @@ use Carbon\Carbon;
  * 
  * Implements the domain ProductRepositoryInterface using Laravel's Eloquent ORM.
  * Handles mapping between domain entities and database models.
+ * Implements cache invalidation as per REQ-PERF-007: Cache invalidation SHALL occur on data updates
  * 
  * Requirements Implemented:
  * - REQ-ARCH-005: App layer implements repositories based on domain layer contracts
  * - REQ-REPO-001 to REQ-REPO-006: Repository operations
  * - REQ-PERSIST-001: Store scraped product data in database
  * - REQ-PERSIST-002: Update existing products with new scraping data
+ * - REQ-PERF-007: Cache invalidation SHALL occur on data updates
  */
 class ProductRepository implements ProductRepositoryInterface
 {
     private ProductModel $model;
+    private ProductCacheService $cacheService;
 
-    public function __construct(ProductModel $model)
-    {
+    public function __construct(
+        ProductModel $model,
+        ProductCacheService $cacheService
+    ) {
         $this->model = $model;
+        $this->cacheService = $cacheService;
     }
 
     /**
@@ -100,14 +107,19 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * Save a product (create or update)
      * 
+     * Implements cache invalidation as per REQ-PERF-007
+     * 
      * @return Product The saved product with updated ID and timestamps
      */
     public function save(Product $product): Product
     {
         $isNew = $product->isNew();
+        $productId = $product->getId();
         
         if ($isNew) {
             $model = $this->createNewModel($product);
+            $productId = $model->id;
+            
             Log::info('[PRODUCT-REPOSITORY] Created new product', [
                 'id' => $model->id,
                 'title' => $product->getTitle(),
@@ -116,6 +128,7 @@ class ProductRepository implements ProductRepositoryInterface
             ]);
         } else {
             $model = $this->updateExistingModel($product);
+            
             Log::info('[PRODUCT-REPOSITORY] Updated existing product', [
                 'id' => $product->getId(),
                 'title' => $product->getTitle(),
@@ -124,11 +137,22 @@ class ProductRepository implements ProductRepositoryInterface
             ]);
         }
 
+        // Invalidate cache for this product and all related caches
+        // This ensures fresh data is returned on next request
+        if ($productId) {
+            $this->cacheService->invalidateProductComplete($productId);
+            Log::debug('[PRODUCT-REPOSITORY] Cache invalidated for product', [
+                'product_id' => $productId,
+            ]);
+        }
+
         return $this->toDomainEntity($model);
     }
 
     /**
      * Delete a product
+     * 
+     * Implements cache invalidation as per REQ-PERF-007
      */
     public function delete(Product $product): void
     {
@@ -140,11 +164,17 @@ class ProductRepository implements ProductRepositoryInterface
             return;
         }
 
-        $model = $this->model->find($product->getId());
+        $productId = $product->getId();
+        $model = $this->model->find($productId);
+        
         if ($model) {
             $model->delete();
-            Log::info('[PRODUCT-REPOSITORY] Deleted product', [
-                'id' => $product->getId(),
+            
+            // Invalidate cache for deleted product
+            $this->cacheService->invalidateProductComplete($productId);
+            
+            Log::info('[PRODUCT-REPOSITORY] Deleted product and invalidated cache', [
+                'id' => $productId,
                 'title' => $product->getTitle(),
             ]);
         }
