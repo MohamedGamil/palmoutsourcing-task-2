@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiStdResponse;
+use App\Services\PlatformDetector;
 use App\UseCases\CreateProductUseCase;
 use App\UseCases\DeleteProductUseCase;
 use App\UseCases\FetchProductsUseCase;
@@ -419,33 +420,27 @@ class ProductController extends Controller
      * 
      * Request Body:
      * - url (required|url): Product URL
-     * - platform (required|string): Platform (amazon/jumia)
+     * 
+     * Platform is automatically detected from the URL domain.
      * 
      * @OA\Post(
      *     path="/api/products",
      *     operationId="createProduct",
      *     tags={"Products"},
      *     summary="Create a new product by scraping from URL",
-     *     description="Scrape product details from the provided URL and create a new watched product. The product will be scraped from the specified platform (Amazon or Jumia) and stored in the database.",
+     *     description="Scrape product details from the provided URL and create a new watched product. The platform (Amazon or Jumia) is automatically detected from the URL domain.",
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Product URL and platform",
+     *         description="Product URL to scrape",
      *         @OA\JsonContent(
-     *             required={"url", "platform"},
+     *             required={"url"},
      *             @OA\Property(
      *                 property="url",
      *                 type="string",
      *                 format="uri",
      *                 maxLength=500,
-     *                 description="Product URL to scrape",
+     *                 description="Product URL to scrape (platform auto-detected from domain)",
      *                 example="https://www.amazon.com/dp/B0863TXGM3"
-     *             ),
-     *             @OA\Property(
-     *                 property="platform",
-     *                 type="string",
-     *                 enum={"amazon", "jumia"},
-     *                 description="E-commerce platform",
-     *                 example="amazon"
      *             )
      *         )
      *     ),
@@ -468,7 +463,7 @@ class ProductController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation failed or scraping failed",
+     *         description="Validation failed or scraping failed or unsupported platform",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Validation failed"),
@@ -501,18 +496,29 @@ class ProductController extends Controller
         try {
             $validated = $request->validate([
                 'url' => 'required|url|max:500',
-                'platform' => 'required|string|in:amazon,jumia',
             ]);
+
+            // Auto-detect platform from URL
+            try {
+                $platform = PlatformDetector::detectPlatformString($validated['url']);
+            } catch (\Exception $e) {
+                return ApiStdResponse::errorResponse(
+                    'Cannot detect platform from URL. Supported platforms: Amazon, Jumia',
+                    422,
+                    ['url' => $e->getMessage()]
+                );
+            }
 
             Log::info('[PRODUCT-API] Creating new product', [
                 'url' => $validated['url'],
-                'platform' => $validated['platform'],
+                'platform' => $platform,
+                'platform_auto_detected' => true,
                 'ip' => $request->ip(),
             ]);
 
             $result = $this->createProductUseCase->execute(
                 $validated['url'],
-                $validated['platform']
+                $platform
             );
 
             if ($result['success']) {

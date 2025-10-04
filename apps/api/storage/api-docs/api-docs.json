@@ -329,34 +329,24 @@
                     "Products"
                 ],
                 "summary": "Create a new product by scraping from URL",
-                "description": "Scrape product details from the provided URL and create a new watched product. The product will be scraped from the specified platform (Amazon or Jumia) and stored in the database.",
+                "description": "Scrape product details from the provided URL and create a new watched product. The platform (Amazon or Jumia) is automatically detected from the URL domain.",
                 "operationId": "createProduct",
                 "requestBody": {
-                    "description": "Product URL and platform",
+                    "description": "Product URL to scrape",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "url",
-                                    "platform"
+                                    "url"
                                 ],
                                 "properties": {
                                     "url": {
-                                        "description": "Product URL to scrape",
+                                        "description": "Product URL to scrape (platform auto-detected from domain)",
                                         "type": "string",
                                         "format": "uri",
                                         "maxLength": 500,
                                         "example": "https://www.amazon.com/dp/B0863TXGM3"
-                                    },
-                                    "platform": {
-                                        "description": "E-commerce platform",
-                                        "type": "string",
-                                        "enum": [
-                                            "amazon",
-                                            "jumia"
-                                        ],
-                                        "example": "amazon"
                                     }
                                 },
                                 "type": "object"
@@ -409,7 +399,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation failed or scraping failed",
+                        "description": "Validation failed or scraping failed or unsupported platform",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -906,34 +896,24 @@
                     "Scraping"
                 ],
                 "summary": "Scrape and store a single product",
-                "description": "Scrape product details from a URL and store it in the database. This endpoint creates a new watched product by fetching data from the specified e-commerce platform.",
+                "description": "Scrape product details from a URL and store it in the database. This endpoint creates a new watched product by fetching data from the e-commerce platform (automatically detected from URL domain).",
                 "operationId": "scrapeProduct",
                 "requestBody": {
-                    "description": "Product URL and platform to scrape from",
+                    "description": "Product URL to scrape (platform auto-detected)",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "url",
-                                    "platform"
+                                    "url"
                                 ],
                                 "properties": {
                                     "url": {
-                                        "description": "Product URL to scrape",
+                                        "description": "Product URL to scrape (platform auto-detected from domain)",
                                         "type": "string",
                                         "format": "uri",
                                         "maxLength": 500,
                                         "example": "https://www.amazon.com/dp/B0863TXGM3"
-                                    },
-                                    "platform": {
-                                        "description": "E-commerce platform",
-                                        "type": "string",
-                                        "enum": [
-                                            "amazon",
-                                            "jumia"
-                                        ],
-                                        "example": "amazon"
                                     }
                                 },
                                 "type": "object"
@@ -986,7 +966,7 @@
                         }
                     },
                     "422": {
-                        "description": "Validation or scraping failed",
+                        "description": "Validation or scraping failed or unsupported platform",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -1046,42 +1026,26 @@
                     "Scraping"
                 ],
                 "summary": "Batch scrape multiple products",
-                "description": "Scrape and store multiple products in a single request. Maximum 50 products per batch. Returns aggregated results with success/failure counts.",
+                "description": "Scrape and store multiple products in a single request. Maximum 50 products per batch. Platform is automatically detected from each URL's domain. Returns aggregated results with success/failure counts.",
                 "operationId": "batchScrapeProducts",
                 "requestBody": {
-                    "description": "Array of products to scrape",
+                    "description": "Array of product URLs to scrape (platforms auto-detected)",
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "products"
+                                    "urls"
                                 ],
                                 "properties": {
-                                    "products": {
+                                    "urls": {
+                                        "description": "Array of product URLs (platforms auto-detected from domains)",
                                         "type": "array",
                                         "items": {
-                                            "required": [
-                                                "url",
-                                                "platform"
-                                            ],
-                                            "properties": {
-                                                "url": {
-                                                    "type": "string",
-                                                    "format": "uri",
-                                                    "maxLength": 500,
-                                                    "example": "https://www.amazon.com/dp/B0863TXGM3"
-                                                },
-                                                "platform": {
-                                                    "type": "string",
-                                                    "enum": [
-                                                        "amazon",
-                                                        "jumia"
-                                                    ],
-                                                    "example": "amazon"
-                                                }
-                                            },
-                                            "type": "object"
+                                            "type": "string",
+                                            "format": "uri",
+                                            "maxLength": 500,
+                                            "example": "https://www.amazon.com/dp/B0863TXGM3"
                                         },
                                         "maxItems": 50,
                                         "minItems": 1
@@ -1090,15 +1054,9 @@
                                 "type": "object"
                             },
                             "example": {
-                                "products": [
-                                    {
-                                        "url": "https://www.amazon.com/dp/B001",
-                                        "platform": "amazon"
-                                    },
-                                    {
-                                        "url": "https://www.jumia.com.eg/product-123",
-                                        "platform": "jumia"
-                                    }
+                                "urls": [
+                                    "https://www.amazon.com/dp/B001",
+                                    "https://www.jumia.com.eg/product-123"
                                 ]
                             }
                         }
@@ -1190,11 +1148,11 @@
                                         },
                                         "errors": {
                                             "properties": {
-                                                "products": {
+                                                "urls": {
                                                     "type": "array",
                                                     "items": {
                                                         "type": "string",
-                                                        "example": "The products must not have more than 50 items."
+                                                        "example": "The urls must not have more than 50 items."
                                                     }
                                                 }
                                             },

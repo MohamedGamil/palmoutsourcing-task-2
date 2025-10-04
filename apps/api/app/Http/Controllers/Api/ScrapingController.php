@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Responses\ApiStdResponse;
+use App\Services\PlatformDetector;
 use App\UseCases\BatchCreateProductsUseCase;
 use App\UseCases\CreateProductUseCase;
 use App\UseCases\ScrapeProductUseCase;
@@ -48,31 +49,26 @@ class ScrapingController extends Controller
      * 
      * POST /api/scraping/scrape
      * 
+     * Platform is automatically detected from the URL domain.
+     * 
      * @OA\Post(
      *     path="/api/scraping/scrape",
      *     operationId="scrapeProduct",
      *     tags={"Scraping"},
      *     summary="Scrape and store a single product",
-     *     description="Scrape product details from a URL and store it in the database. This endpoint creates a new watched product by fetching data from the specified e-commerce platform.",
+     *     description="Scrape product details from a URL and store it in the database. This endpoint creates a new watched product by fetching data from the e-commerce platform (automatically detected from URL domain).",
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Product URL and platform to scrape from",
+     *         description="Product URL to scrape (platform auto-detected)",
      *         @OA\JsonContent(
-     *             required={"url", "platform"},
+     *             required={"url"},
      *             @OA\Property(
      *                 property="url",
      *                 type="string",
      *                 format="uri",
      *                 maxLength=500,
-     *                 description="Product URL to scrape",
+     *                 description="Product URL to scrape (platform auto-detected from domain)",
      *                 example="https://www.amazon.com/dp/B0863TXGM3"
-     *             ),
-     *             @OA\Property(
-     *                 property="platform",
-     *                 type="string",
-     *                 enum={"amazon", "jumia"},
-     *                 description="E-commerce platform",
-     *                 example="amazon"
      *             )
      *         )
      *     ),
@@ -95,7 +91,7 @@ class ScrapingController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Validation or scraping failed",
+     *         description="Validation or scraping failed or unsupported platform",
      *         @OA\JsonContent(
      *             @OA\Property(property="success", type="boolean", example=false),
      *             @OA\Property(property="message", type="string", example="Validation failed"),
@@ -128,19 +124,30 @@ class ScrapingController extends Controller
         try {
             $validated = $request->validate([
                 'url' => 'required|url|max:500',
-                'platform' => 'required|string|in:amazon,jumia',
             ]);
+
+            // Auto-detect platform from URL
+            try {
+                $platform = PlatformDetector::detectPlatformString($validated['url']);
+            } catch (\Exception $e) {
+                return ApiStdResponse::errorResponse(
+                    'Cannot detect platform from URL. Supported platforms: Amazon, Jumia',
+                    422,
+                    ['url' => $e->getMessage()]
+                );
+            }
 
             Log::info('[SCRAPING-API] Single product scrape request', [
                 'url' => $validated['url'],
-                'platform' => $validated['platform'],
+                'platform' => $platform,
+                'platform_auto_detected' => true,
                 'ip' => $request->ip(),
             ]);
 
             // Use CreateProductUseCase to scrape and store
             $result = $this->createProductUseCase->execute(
                 $validated['url'],
-                $validated['platform']
+                $platform
             );
 
             if ($result['success']) {
@@ -182,44 +189,36 @@ class ScrapingController extends Controller
      * 
      * POST /api/scraping/batch
      * 
+     * Platform is automatically detected from each URL's domain.
+     * 
      * @OA\Post(
      *     path="/api/scraping/batch",
      *     operationId="batchScrapeProducts",
      *     tags={"Scraping"},
      *     summary="Batch scrape multiple products",
-     *     description="Scrape and store multiple products in a single request. Maximum 50 products per batch. Returns aggregated results with success/failure counts.",
+     *     description="Scrape and store multiple products in a single request. Maximum 50 products per batch. Platform is automatically detected from each URL's domain. Returns aggregated results with success/failure counts.",
      *     @OA\RequestBody(
      *         required=true,
-     *         description="Array of products to scrape",
+     *         description="Array of product URLs to scrape (platforms auto-detected)",
      *         @OA\JsonContent(
-     *             required={"products"},
+     *             required={"urls"},
      *             @OA\Property(
-     *                 property="products",
+     *                 property="urls",
      *                 type="array",
      *                 minItems=1,
      *                 maxItems=50,
+     *                 description="Array of product URLs (platforms auto-detected from domains)",
      *                 @OA\Items(
-     *                     type="object",
-     *                     required={"url", "platform"},
-     *                     @OA\Property(
-     *                         property="url",
-     *                         type="string",
-     *                         format="uri",
-     *                         maxLength=500,
-     *                         example="https://www.amazon.com/dp/B0863TXGM3"
-     *                     ),
-     *                     @OA\Property(
-     *                         property="platform",
-     *                         type="string",
-     *                         enum={"amazon", "jumia"},
-     *                         example="amazon"
-     *                     )
+     *                     type="string",
+     *                     format="uri",
+     *                     maxLength=500,
+     *                     example="https://www.amazon.com/dp/B0863TXGM3"
      *                 )
      *             ),
      *             example={
-     *                 "products": {
-     *                     {"url": "https://www.amazon.com/dp/B001", "platform": "amazon"},
-     *                     {"url": "https://www.jumia.com.eg/product-123", "platform": "jumia"}
+     *                 "urls": {
+     *                     "https://www.amazon.com/dp/B001",
+     *                     "https://www.jumia.com.eg/product-123"
      *                 }
      *             }
      *         )
@@ -262,9 +261,9 @@ class ScrapingController extends Controller
      *                 property="errors",
      *                 type="object",
      *                 @OA\Property(
-     *                     property="products",
+     *                     property="urls",
      *                     type="array",
-     *                     @OA\Items(type="string", example="The products must not have more than 50 items.")
+     *                     @OA\Items(type="string", example="The urls must not have more than 50 items.")
      *                 )
      *             )
      *         )
@@ -287,17 +286,36 @@ class ScrapingController extends Controller
         try {
             $validated = $request->validate([
                 'urls' => 'required|array|min:1|max:50',
-                'urls.*.url' => 'required|url|max:500',
-                'urls.*.platform' => 'required|string|in:amazon,jumia',
+                'urls.*' => 'required|url|max:500',
             ]);
 
+            // Auto-detect platform for each URL
+            $urlsWithPlatforms = [];
+            foreach ($validated['urls'] as $index => $url) {
+                try {
+                    $platform = PlatformDetector::detectPlatformString($url);
+                    $urlsWithPlatforms[] = [
+                        'url' => $url,
+                        'platform' => $platform,
+                    ];
+                } catch (\Exception $e) {
+                    // Return error with the problematic URL
+                    return ApiStdResponse::errorResponse(
+                        "Cannot detect platform for URL at index {$index}: {$url}",
+                        422,
+                        ['error' => $e->getMessage()]
+                    );
+                }
+            }
+
             Log::info('[SCRAPING-API] Batch product scrape request', [
-                'url_count' => count($validated['urls']),
+                'url_count' => count($urlsWithPlatforms),
+                'platforms_auto_detected' => true,
                 'ip' => $request->ip(),
             ]);
 
             // Use BatchCreateProductsUseCase
-            $result = $this->batchCreateProductsUseCase->execute($validated['urls']);
+            $result = $this->batchCreateProductsUseCase->execute($urlsWithPlatforms);
 
             if ($result['success']) {
                 return ApiStdResponse::successResponse(
