@@ -13,7 +13,7 @@ export default function ProductsPage() {
   const [platformFilter, setPlatformFilter] = useState<PlatformFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+  const [perPage, setPerPage] = useState(12);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -99,11 +99,11 @@ export default function ProductsPage() {
   const getPlatformColor = (platform: Platform) => {
     switch (platform) {
       case 'amazon':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+        return 'bg-orange-100 text-orange-800 dark:bg-amber-900 dark:text-white';
       case 'jumia':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-white';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200';
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white';
     }
   };
 
@@ -275,10 +275,9 @@ export default function ProductsPage() {
                 onChange={(e) => handlePerPageChange(Number(e.target.value))}
                 className="block px-3 py-2 border border-gray-300 rounded-md text-sm font-medium bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-blue-400"
               >
-                <option value={10}>10 per page</option>
-                <option value={25}>25 per page</option>
-                <option value={50}>50 per page</option>
-                <option value={100}>100 per page</option>
+                <option value={12}>12 per page</option>
+                <option value={24}>24 per page</option>
+                <option value={48}>48 per page</option>
               </select>
             </div>
             <button
@@ -345,7 +344,7 @@ export default function ProductsPage() {
         {/* Products List */}
         {products.length === 0 && !isLoading && !error ? (
           <div className="text-center py-12">
-            <div className="text-6xl mb-4">�</div>
+            <div className="text-6xl mb-4"> </div>
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               {platformFilter === 'all' ? 'No products found' : `No ${platformFilter} products`}
             </h3>
@@ -375,7 +374,7 @@ export default function ProductsPage() {
                 {/* Product Info */}
                 <div className="px-4 py-4">
                   <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 flex-1">
+                    <h3 className="text-md font-semibold text-gray-900 dark:text-white line-clamp-2 flex-1">
                       {product.title}
                     </h3>
                   </div>
@@ -398,7 +397,7 @@ export default function ProductsPage() {
                   <div className="space-y-1 mb-3">
                     {product.price && (
                       <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                        ${Number(product.price).toFixed(2)}
+                        {Number(product.price).toFixed(2)} {product.price_currency}
                       </p>
                     )}
                     {product.rating && (

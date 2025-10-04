@@ -36,6 +36,18 @@ export interface PaginatedResponse<T> {
   meta: PaginationMeta;
 }
 
+export interface PaginatedAPIResponse {
+  data: Product[];
+  meta?: {
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+    from: number;
+    to: number;
+  };
+}
+
 export interface SingleResponse<T> {
   data: T;
   message?: string;

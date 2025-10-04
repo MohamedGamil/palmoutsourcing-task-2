@@ -23,7 +23,6 @@ import type {
   ScrapeProductsRequest,
   ScrapeProductsResponse,
   ProductStats,
-  MessageResponse,
 } from '@/types/api';
 
 /**
@@ -158,13 +157,13 @@ export const useUpdateProduct = (
  * @param options - React Query mutation options
  */
 export const useDeleteProduct = (
-  options?: UseMutationOptions<MessageResponse, Error, number>
+  options?: UseMutationOptions<void, Error, number>
 ) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (id: number) => productService.deleteProduct(id),
-    onSuccess: (response, deletedId) => {
+    onSuccess: (_, deletedId) => {
       // Remove product from cache
       queryClient.removeQueries({ queryKey: productKeys.detail(deletedId) });
       
