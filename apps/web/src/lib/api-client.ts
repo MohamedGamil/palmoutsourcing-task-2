@@ -2,7 +2,7 @@
  * API Client with CSRF token support
  */
 
-import { API_BASE_URL } from "@/constants";
+import { API_BASE_URL, API_BASE_SEGMENT } from "@/constants";
 
 
 // CSRF token management
@@ -110,7 +110,7 @@ class APIClient {
   private baseURL: string;
 
   constructor(baseURL: string = API_BASE_URL) {
-    this.baseURL = baseURL;
+    this.baseURL = baseURL + API_BASE_SEGMENT;
   }
 
   /**
