@@ -6,14 +6,28 @@ use OpenApi\Annotations as OA;
 
 /**
  * @OA\Info(
- *     title="PalmOutsourcing Task (2) API",
+ *     title="PalmOutsourcing Task (2) - Product Scraping API",
  *     version="1.0.0",
- *     description="Laravel API for tasks (GET /tasks, POST /tasks)."
+ *     description="RESTful API for scraping and managing e-commerce products from Amazon and Jumia. Provides comprehensive CRUD operations, batch scraping, filtering, pagination, and real-time price monitoring.",
+ *     @OA\Contact(
+ *         name="API Support",
+ *         email="support@example.com"
+ *     )
  * )
  *
  * @OA\Server(
  *     url=L5_SWAGGER_CONST_HOST,
- *     description="Local dev"
+ *     description="API Server"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Products",
+ *     description="Product management endpoints - CRUD operations for watched products"
+ * )
+ *
+ * @OA\Tag(
+ *     name="Scraping",
+ *     description="Product scraping operations - endpoints for scraping products from e-commerce platforms"
  * )
  *
  * @OA\PathItem(path="/api")

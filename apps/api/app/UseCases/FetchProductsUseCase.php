@@ -9,6 +9,8 @@ use App\Services\ProductCacheService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Builder;
 
+use function PHPUnit\Framework\isNumeric;
+
 /**
  * Fetch Products Use Case
  * 
@@ -332,6 +334,24 @@ class FetchProductsUseCase
                 return $cachedStats;
             }
 
+            $priceMin = ProductModel::min('price');
+            $priceMin = isNumeric($priceMin) ? (float) $priceMin : 0;
+            $priceMax = ProductModel::max('price');
+            $priceMax = isNumeric($priceMax) ? (float) $priceMax : 0;
+            $priceAvg = ProductModel::avg('price');
+            $priceAvg = isNumeric($priceAvg) ? round((float) $priceAvg, 2) : 0;
+
+            $ratingMin = ProductModel::min('rating');
+            $ratingMin = isNumeric($ratingMin) ? (float) $ratingMin : 0;
+            $ratingMax = ProductModel::max('rating');
+            $ratingMax = isNumeric($ratingMax) ? (float) $ratingMax : 0;
+            $ratingAvg = ProductModel::avg('rating');
+            $ratingAvg = isNumeric($ratingAvg) ? round((float) $ratingAvg, 2) : 0;
+
+            $totalScrapes = (int) ProductModel::sum('scrape_count');
+            $avgScrapesPerProduct = round((float) ProductModel::avg('scrape_count'), 2);
+            $avgScrapesPerProduct = isNumeric($avgScrapesPerProduct) ? round((float) $avgScrapesPerProduct, 2) : 0;
+
             $stats = [
                 'total_products' => ProductModel::count(),
                 'active_products' => ProductModel::where('is_active', true)->count(),
@@ -341,18 +361,18 @@ class FetchProductsUseCase
                     'jumia' => ProductModel::where('platform', 'jumia')->count(),
                 ],
                 'price_stats' => [
-                    'min' => ProductModel::min('price'),
-                    'max' => ProductModel::max('price'),
-                    'avg' => round(ProductModel::avg('price'), 2),
+                    'min' => $priceMin,
+                    'max' => $priceMax,
+                    'avg' => $priceAvg,
                 ],
                 'rating_stats' => [
-                    'min' => ProductModel::min('rating'),
-                    'max' => ProductModel::max('rating'),
-                    'avg' => round(ProductModel::avg('rating'), 2),
+                    'min' => $ratingMin,
+                    'max' => $ratingMax,
+                    'avg' => $ratingAvg,
                 ],
                 'scraping_stats' => [
-                    'total_scrapes' => ProductModel::sum('scrape_count'),
-                    'avg_scrapes_per_product' => round(ProductModel::avg('scrape_count'), 2),
+                    'total_scrapes' => $totalScrapes,
+                    'avg_scrapes_per_product' => $avgScrapesPerProduct,
                     'products_never_scraped' => ProductModel::whereNull('last_scraped_at')->count(),
                     'products_scraped_today' => ProductModel::whereDate('last_scraped_at', today())->count(),
                 ],

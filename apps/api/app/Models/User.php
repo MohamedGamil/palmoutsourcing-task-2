@@ -16,11 +16,11 @@ use Illuminate\Notifications\Notifiable;
  *     @OA\Property(property="id", type="integer", readOnly=true, example=1),
  *     @OA\Property(property="name", type="string", example="John Doe"),
  *     @OA\Property(property="email", type="string", format="email", example="john@example.com"),
- *     @OA\Property(property="email_verified_at", type="string", format="date-time", nullable=true, example="2024-06-01T12:00:00Z"),
+ *     @OA\Property(property="email_verified_at", type="string", format="date-time", nullable=true, example="2025-06-01T12:00:00Z"),
  *     @OA\Property(property="password", type="string", format="password", writeOnly=true, example="secret"),
  *     @OA\Property(property="remember_token", type="string", nullable=true, example="randomtoken123"),
- *     @OA\Property(property="created_at", type="string", format="date-time", readOnly=true, example="2024-06-01T12:00:00Z"),
- *     @OA\Property(property="updated_at", type="string", format="date-time", readOnly=true, example="2024-06-01T12:00:00Z")
+ *     @OA\Property(property="created_at", type="string", format="date-time", readOnly=true, example="2025-06-01T12:00:00Z"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time", readOnly=true, example="2025-06-01T12:00:00Z")
  * )
  */
 class User extends Authenticatable
