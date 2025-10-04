@@ -16,6 +16,7 @@ use App\Services\ProxyService;
 use App\Services\ScrapingOrchestrator;
 use App\Services\ProductScrapingStorageService;
 use App\Repositories\ProductRepository;
+use App\Services\ProductCacheService;
 use Domain\Product\Service\ProductMapperInterface;
 use Domain\Product\Service\ProxyServiceInterface;
 use Domain\Product\Service\ScrapingOrchestratorInterface;
@@ -46,6 +47,11 @@ class ScrapingServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // ProductCacheService - Centralized caching for product operations
+        $this->app->singleton(ProductCacheService::class, function ($app) {
+            return new ProductCacheService();
+        });
+
         // Register ProxyService as singleton
         $this->app->singleton(ProxyServiceInterface::class, function ($app) {
             return new (static::PROXY_SERVICE)(
@@ -77,7 +83,8 @@ class ScrapingServiceProvider extends ServiceProvider
         // Register ProductRepository as singleton
         $this->app->singleton(ProductRepositoryInterface::class, function ($app) {
             return new (static::PRODUCT_REPOSITORY)(
-                $app->make(\App\Models\Product::class)
+                $app->make(\App\Models\Product::class),
+                $app->make(ProductCacheService::class)
             );
         });
 

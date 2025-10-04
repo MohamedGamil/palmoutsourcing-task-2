@@ -38,11 +38,6 @@ class UseCasesServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // ProductCacheService - Centralized caching for product operations
-        $this->app->singleton(ProductCacheService::class, function ($app) {
-            return new ProductCacheService();
-        });
-
         // CreateProductUseCase - Create product from URL
         $this->app->singleton(CreateProductUseCase::class, function ($app) {
             return new CreateProductUseCase(
@@ -105,7 +100,6 @@ class UseCasesServiceProvider extends ServiceProvider
     public function provides(): array
     {
         return [
-            ProductCacheService::class,
             CreateProductUseCase::class,
             UpdateProductUseCase::class,
             BatchCreateProductsUseCase::class,
