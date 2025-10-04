@@ -226,6 +226,38 @@ class ProductRepository implements ProductRepositoryInterface
     }
 
     /**
+     * Find products for scraping with intelligent prioritization
+     * Priority: stale (never scraped) > least scraped > outdated
+     */
+    public function findProductsForScraping(int $limit = 100, int $maxHoursSinceLastScrape = 24): array
+    {
+        $models = $this->model
+            ->where('is_active', true)
+            ->where(function ($query) use ($maxHoursSinceLastScrape) {
+                // Include products that are either never scraped or outdated
+                $query->whereNull('last_scraped_at')
+                    ->orWhere('last_scraped_at', '<', now()->subHours($maxHoursSinceLastScrape));
+            })
+            ->orderByRaw('CASE 
+                WHEN last_scraped_at IS NULL THEN 0
+                WHEN scrape_count = 0 THEN 0
+                ELSE 1 
+            END')
+            ->orderBy('scrape_count', 'asc')
+            ->orderBy('last_scraped_at', 'asc', 'nulls first')
+            ->limit($limit)
+            ->get();
+        
+        Log::debug('[PRODUCT-REPOSITORY] Found products for scraping with priority', [
+            'count' => $models->count(),
+            'limit' => $limit,
+            'max_hours_since_last_scrape' => $maxHoursSinceLastScrape,
+        ]);
+        
+        return $models->map(fn($model) => $this->toDomainEntity($model))->toArray();
+    }
+
+    /**
      * Count total products
      */
     public function count(): int

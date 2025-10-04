@@ -80,6 +80,16 @@ interface ProductRepositoryInterface
     public function findProductsNeedingScraping(int $maxHoursSinceLastScrape = 24): array;
 
     /**
+     * Find products for scraping with intelligent prioritization
+     * Priority: stale (never scraped) > least scraped > outdated
+     * 
+     * @param int $limit Maximum number of products to return
+     * @param int $maxHoursSinceLastScrape Hours since last scrape to consider "outdated"
+     * @return Product[]
+     */
+    public function findProductsForScraping(int $limit = 100, int $maxHoursSinceLastScrape = 24): array;
+
+    /**
      * Count total products
      */
     public function count(): int;

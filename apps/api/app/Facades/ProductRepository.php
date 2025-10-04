@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static Product[] findAllActive()
  * @method static Product[] findActiveByPlatform(Platform $platform)
  * @method static Product[] findProductsNeedingScraping(int $maxHoursSinceLastScrape = 24)
+ * @method static Product[] findProductsForScraping(int $limit = 100, int $maxHoursSinceLastScrape = 24)
  * @method static int count()
  * @method static int countActive()
  * @method static int countByPlatform(Platform $platform)
