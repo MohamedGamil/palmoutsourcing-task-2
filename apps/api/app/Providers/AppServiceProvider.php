@@ -15,6 +15,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->register(
             ScrapingServiceProvider::class
         );
+        
+        $this->app->register(
+            UseCasesServiceProvider::class
+        );
     }
 
     /**
