@@ -53,7 +53,7 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
             </h3>
             <button
               type="button"
-              className="bg-white dark:bg-gray-800 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="bg-white dark:bg-gray-800 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer"
               onClick={onClose}
             >
               <span className="sr-only">Close</span>

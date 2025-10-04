@@ -90,9 +90,10 @@ export default function ProductsPage() {
   };
 
   const handleProductCreated = (product: Product) => {
-    // Close modal
     setIsAddModalOpen(false);
-    // React Query automatically refetches
+    handleClearSearch();
+    handleFilterChange('all');
+    refetch();
   };
 
   const handleProductError = (errorMessage: string) => {
@@ -123,6 +124,10 @@ export default function ProductsPage() {
 
   const handleCloseAddModal = () => {
     setIsAddModalOpen(false);
+  };
+
+  const handleClearErrors = () => {
+    setError(null);
   };
 
   const getPlatformColor = (platform: Platform) => {
@@ -397,22 +402,31 @@ export default function ProductsPage() {
         {/* Error State */}
         {error && (
           <div className="mb-6 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-md p-4">
-            <div className="flex">
+            <div className="flex relative">
               <div className="ml-3">
+                <button
+                  onClick={handleClearErrors}
+                  className="ml-auto flex-shrink-0 absolute top-0 right-0 p-1.5 text-red-400 hover:text-red-600 dark:text-red-300 dark:hover:text-red-100 cursor-pointer"
+                  aria-label="Close error message"
+                >
+                  <svg className="h-5 w-5 text-red-400 hover:text-red-600 dark:text-red-300 dark:hover:text-red-100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
                 <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
                   Error loading products
                 </h3>
                 <div className="mt-2 text-sm text-red-700 dark:text-red-300">
                   {error}
                 </div>
-                <div className="mt-4">
+                {/* <div className="mt-4">
                   <button
                     onClick={handleRefresh}
                     className="bg-red-100 dark:bg-red-800 hover:bg-red-200 dark:hover:bg-red-700 text-red-800 dark:text-red-200 px-3 py-2 rounded-md text-sm font-bold"
                   >
                     Try again
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>

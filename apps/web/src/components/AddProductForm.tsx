@@ -46,7 +46,7 @@ export function AddProductForm({ onSubmit, onCancel, onError }: AddProductFormPr
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
-      createProduct.mutate({ product_url: productUrl.trim() });
+      createProduct.mutate({ url: productUrl.trim() });
     }
   };
 
@@ -113,14 +113,14 @@ export function AddProductForm({ onSubmit, onCancel, onError }: AddProductFormPr
           type="button"
           onClick={onCancel}
           disabled={createProduct.isPending}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
+          className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={createProduct.isPending}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {createProduct.isPending ? (
             <>

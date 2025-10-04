@@ -114,8 +114,7 @@ export interface ProductFilters {
 }
 
 export interface CreateProductRequest {
-  product_url: string;
-  platform?: Platform;
+  url: string;
 }
 
 export interface UpdateProductRequest {
