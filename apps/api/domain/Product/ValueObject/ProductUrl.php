@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Domain\Product\ValueObject;
 
+use Domain\Product\Service\UrlSanitizer;
 use Domain\Product\Exception\InvalidProductUrlException;
 
 /**
@@ -11,22 +12,30 @@ use Domain\Product\Exception\InvalidProductUrlException;
  * 
  * Represents a validated product URL from supported e-commerce platforms.
  * Immutable value object ensuring URL validity and format.
+ * URLs are automatically sanitized to remove query parameters and trailing slashes.
  * 
  * Requirements Implemented:
  * - REQ-ARCH-003: Domain layer includes value types
  * - REQ-VAL-002: Product URL must be valid and match platform
  * - REQ-VAL-004: Product URL max 500 characters
+ * - REQ-DATA-001: URLs are normalized to prevent duplicates
  */
 final class ProductUrl
 {
     private const MAX_LENGTH = 500;
 
     private string $url;
+    private string $originalUrl;
 
     private function __construct(string $url)
     {
-        $this->validate($url);
-        $this->url = $url;
+        $this->originalUrl = $url;
+        
+        // Sanitize the URL before validation
+        $sanitizedUrl = UrlSanitizer::sanitize($url);
+        
+        $this->validate($sanitizedUrl);
+        $this->url = $sanitizedUrl;
     }
 
     public static function make(string $url): self
@@ -128,6 +137,22 @@ final class ProductUrl
         return $this->url;
     }
 
+    /**
+     * Get the original URL before sanitization
+     */
+    public function getOriginalUrl(): string
+    {
+        return $this->originalUrl;
+    }
+
+    /**
+     * Get the sanitized URL (same as toString)
+     */
+    public function getSanitizedUrl(): string
+    {
+        return $this->url;
+    }
+
     public function __toString(): string
     {
         return $this->toString();
@@ -139,39 +164,11 @@ final class ProductUrl
     }
 
     /**
-     * Normalize URL for comparison (remove tracking params, etc.)
-     * This is useful for detecting duplicate products
+     * Normalize URL for comparison (already sanitized in constructor)
+     * This method now returns the already-sanitized URL
      */
     public function toNormalized(): string
     {
-        $parsed = parse_url($this->url);
-        
-        if ($parsed === false) {
-            return $this->url;
-        }
-
-        $normalized = $parsed['scheme'] . '://' . $parsed['host'];
-        
-        if (isset($parsed['path'])) {
-            $normalized .= $parsed['path'];
-        }
-
-        // Keep only essential query parameters (product ID, etc.)
-        // Remove tracking parameters (utm_, ref, etc.)
-        if (isset($parsed['query'])) {
-            parse_str($parsed['query'], $params);
-            
-            // Filter out common tracking parameters
-            $trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'ref', 'referrer', 'fbclid', 'gclid'];
-            foreach ($trackingParams as $trackingParam) {
-                unset($params[$trackingParam]);
-            }
-
-            if (!empty($params)) {
-                $normalized .= '?' . http_build_query($params);
-            }
-        }
-
-        return $normalized;
+        return $this->url;
     }
 }
