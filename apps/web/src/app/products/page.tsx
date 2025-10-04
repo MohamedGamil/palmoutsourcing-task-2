@@ -396,46 +396,48 @@ export default function ProductsPage() {
                 
                 {/* Product Info */}
                 <div className="px-4 py-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-md font-semibold text-gray-900 dark:text-white line-clamp-2 flex-1">
-                      {product.title}
-                    </h3>
-                  </div>
-                  
-                  {/* Platform Badge */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${getPlatformColor(product.platform)}`}>
-                      {getPlatformIcon(product.platform)} {product.platform.toUpperCase()}
-                    </span>
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
-                      product.is_active 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                    }`}>
-                      {product.is_active ? '● Active' : '○ Inactive'}
-                    </span>
-                  </div>
-                  
-                  {/* Price and Rating */}
-                  <div className="space-y-1 mb-3">
-                    {product.price && (
-                      <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                        {Number(product.price).toFixed(2)} {product.price_currency}
-                      </p>
-                    )}
-                    {product.rating && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        ⭐ {Number(product.rating).toFixed(1)} / 5.0
-                      </p>
-                    )}
-                  </div>
-                  
-                  {/* Timestamps */}
-                  <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1 mb-3">
-                    <p>Added: {new Date(product.created_at).toLocaleDateString()}</p>
-                    {product.last_scraped_at && (
-                      <p>Last scraped: {new Date(product.last_scraped_at).toLocaleDateString()}</p>
-                    )}
+                  <div className="relative min-h-[190px]">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="text-md font-semibold text-gray-900 dark:text-white line-clamp-2 flex-1">
+                        {product.title}
+                      </h3>
+                    </div>
+                    
+                    {/* Platform Badge */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${getPlatformColor(product.platform)}`}>
+                        {getPlatformIcon(product.platform)} {product.platform.toUpperCase()}
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
+                        product.is_active 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                      }`}>
+                        {product.is_active ? '● Active' : '○ Inactive'}
+                      </span>
+                    </div>
+                    
+                    {/* Price and Rating */}
+                    <div className="space-y-1 mb-3">
+                      {product.price && (
+                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                          {Number(product.price).toFixed(2)} {product.price_currency}
+                        </p>
+                      )}
+                      {product.rating && (
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          ⭐ {Number(product.rating).toFixed(1)} / 5.0
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Timestamps */}
+                    <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1 mb-3">
+                      <p>Added: {new Date(product.created_at).toLocaleDateString()}</p>
+                      {product.last_scraped_at && (
+                        <p>Last scraped: {new Date(product.last_scraped_at).toLocaleDateString()}</p>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Actions */}
