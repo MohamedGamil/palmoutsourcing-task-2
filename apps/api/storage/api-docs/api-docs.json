@@ -966,26 +966,6 @@
                             }
                         }
                     },
-                    "409": {
-                        "description": "Product already exists",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "success": {
-                                            "type": "boolean",
-                                            "example": false
-                                        },
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Product already exists for this URL and platform"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
                     "422": {
                         "description": "Validation or scraping failed or unsupported platform",
                         "content": {

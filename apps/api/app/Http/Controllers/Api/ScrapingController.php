@@ -82,14 +82,6 @@ class ScrapingController extends Controller
      *         )
      *     ),
      *     @OA\Response(
-     *         response=409,
-     *         description="Product already exists",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Product already exists for this URL and platform")
-     *         )
-     *     ),
-     *     @OA\Response(
      *         response=422,
      *         description="Validation or scraping failed or unsupported platform",
      *         @OA\JsonContent(
