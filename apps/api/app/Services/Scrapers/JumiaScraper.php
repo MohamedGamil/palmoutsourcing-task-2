@@ -79,6 +79,9 @@ class JumiaScraper implements PlatformScraperInterface
                 '.total-reviews',
             ],
             'image' => [
+                'img[data-lazy-slide="true"]',  // Primary product carousel images
+                '.sldr._img._prod img[data-src]',  // Product slider images
+                'img[data-lazy="true"][data-src]',  // Lazy-loaded images
                 '.pdp-gallery img[data-src]',
                 '.gallery-image img',
                 '.product-gallery img',
@@ -253,8 +256,25 @@ class JumiaScraper implements PlatformScraperInterface
                 // Handle image - can be array or string
                 if (isset($jsonLdData['image'])) {
                     $imageUrl = is_array($jsonLdData['image']) ? ($jsonLdData['image'][0] ?? null) : $jsonLdData['image'];
+                    
+                    Log::debug('[JUMIA-SCRAPER] Image extracted from JSON-LD', [
+                        'image_type' => is_array($jsonLdData['image']) ? 'array' : 'string',
+                        'image_url' => $imageUrl,
+                    ]);
+                    
+                    // If JSON-LD image is empty, try HTML selectors
+                    if (empty($imageUrl)) {
+                        $imageUrl = $this->extractImageUrl($crawler);
+                        Log::debug('[JUMIA-SCRAPER] JSON-LD image empty, falling back to HTML', [
+                            'image_url' => $imageUrl,
+                        ]);
+                    }
                 } else {
                     $imageUrl = $this->extractImageUrl($crawler);
+                    
+                    Log::debug('[JUMIA-SCRAPER] Image extracted from HTML', [
+                        'image_url' => $imageUrl,
+                    ]);
                 }
                 
                 $category = !empty($jsonLdData['category']) ? $jsonLdData['category'] : $this->extractCategory($crawler);
@@ -453,6 +473,8 @@ class JumiaScraper implements PlatformScraperInterface
      */
     private function extractImageUrl(Crawler $crawler): ?string
     {
+        Log::debug('[JUMIA-SCRAPER] Attempting to extract image URL from HTML');
+        
         foreach ($this->selectors['image'] as $selector) {
             try {
                 $element = $crawler->filter($selector)->first();
@@ -461,15 +483,26 @@ class JumiaScraper implements PlatformScraperInterface
                                $element->attr('src') ?: 
                                $element->attr('data-lazy-src');
                     
+                    Log::debug('[JUMIA-SCRAPER] Image selector tried', [
+                        'selector' => $selector,
+                        'found' => !empty($imageUrl),
+                        'url_preview' => !empty($imageUrl) ? substr($imageUrl, 0, 100) : null,
+                    ]);
+                    
                     if (!empty($imageUrl)) {
                         return $this->normalizeImageUrl($imageUrl);
                     }
                 }
             } catch (Exception $e) {
+                Log::debug('[JUMIA-SCRAPER] Image selector failed', [
+                    'selector' => $selector,
+                    'error' => $e->getMessage(),
+                ]);
                 continue;
             }
         }
 
+        Log::warning('[JUMIA-SCRAPER] No image URL found with any selector');
         return null;
     }
 
