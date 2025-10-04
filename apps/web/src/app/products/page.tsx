@@ -331,7 +331,7 @@ export default function ProductsPage() {
                     type="text"
                     value={searchInput}
                     onChange={(e) => updateSearchInput(e.target.value)}
-                    placeholder="Search products by title..."
+                    placeholder="Search products..."
                     className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-200 dark:placeholder-gray-400"
                   />
                   <svg
