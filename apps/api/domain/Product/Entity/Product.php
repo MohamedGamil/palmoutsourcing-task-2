@@ -184,7 +184,8 @@ class Product
         int $ratingCount = 0,
         ?string $platformId = null,
         ?string $platformCategory = null,
-        ?string $imageUrl = null
+        ?string $imageUrl = null,
+        ?string $priceCurrency = null
     ): void {
         $this->validateTitle($title);
         $this->validateImageUrl($imageUrl);
@@ -198,6 +199,12 @@ class Product
         $this->platformId = $platformId;
         $this->platformCategory = $platformCategory;
         $this->imageUrl = $imageUrl;
+        
+        // Update currency if provided
+        if ($priceCurrency !== null) {
+            $this->priceCurrency = $priceCurrency;
+        }
+        
         $this->touch();
     }
 

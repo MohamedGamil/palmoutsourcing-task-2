@@ -672,18 +672,42 @@ class JumiaScraper implements PlatformScraperInterface
 
     /**
      * Get currency based on Jumia domain
+     * 
+     * REQ-SCRAPE-015: Service SHALL detect and extract currency from price
      */
     private function getCurrencyFromDomain(string $url): string
     {
+        // Parse the domain from the URL
+        $parsedUrl = parse_url($url);
+        $host = $parsedUrl['host'] ?? '';
+        
+        // Remove 'www.' prefix if present
+        $host = preg_replace('/^www\./', '', $host);
+        
+        // Map domains to currency codes
         $domainCurrencyMap = [
-            'jumia.com.eg' => 'EGP',
-            'jumia.co.ke' => 'KES',
-            'jumia.com.ng' => 'NGN',
-            'jumia.com' => 'USD',
+            'jumia.com.eg' => 'EGP',  // Egypt
+            'jumia.com.ng' => 'NGN',  // Nigeria
+            'jumia.co.ke' => 'KES',   // Kenya
+            'jumia.ma' => 'MAD',      // Morocco
+            'jumia.ci' => 'XOF',      // Ivory Coast (CFA Franc)
+            'jumia.sn' => 'XOF',      // Senegal (CFA Franc)
+            'jumia.ug' => 'UGX',      // Uganda
+            'jumia.co.za' => 'ZAR',   // South Africa
+            'jumia.com.tn' => 'TND',  // Tunisia
+            'jumia.dz' => 'DZD',      // Algeria
+            'jumia.com.gh' => 'GHS',  // Ghana
+            'jumia.com' => 'USD',     // Generic fallback
         ];
 
+        // Exact domain match
+        if (isset($domainCurrencyMap[$host])) {
+            return $domainCurrencyMap[$host];
+        }
+
+        // Fallback: Check if any domain is contained in the host
         foreach ($domainCurrencyMap as $domain => $currency) {
-            if (str_contains($url, $domain)) {
+            if ($host === $domain) {
                 return $currency;
             }
         }

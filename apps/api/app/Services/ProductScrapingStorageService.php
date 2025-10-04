@@ -183,7 +183,8 @@ class ProductScrapingStorageService implements ProductScrapingStorageServiceInte
             ratingCount: $mappedData['rating_count'] ?? 0,
             platformCategory: $mappedData['category'] ?? null,
             imageUrl: $mappedData['image_url'] ?? null,
-            platformId: $mappedData['platform_id'] ?? null
+            platformId: $mappedData['platform_id'] ?? null,
+            priceCurrency: $mappedData['price_currency'] ?? 'USD'
         );
 
         // Mark as scraped to update scrape count and timestamp
