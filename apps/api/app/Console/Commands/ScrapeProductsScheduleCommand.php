@@ -7,7 +7,7 @@ namespace App\Console\Commands;
 use App\Jobs\ScheduleProductScrapingJob;
 use Illuminate\Console\Command;
 
-class ScrapeProducts extends Command
+class ScrapeProductsScheduleCommand extends Command
 {
     /**
      * The name and signature of the console command.
