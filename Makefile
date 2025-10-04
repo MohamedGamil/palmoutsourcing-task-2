@@ -121,5 +121,8 @@ web-install:
 web-sh:
 	$(DC) exec web sh
 
+web-dev:
+	cd apps/web && npm run dev && cd ../../
+
 %:
 	@:
