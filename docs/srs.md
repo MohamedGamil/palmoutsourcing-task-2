@@ -135,7 +135,19 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-AUTO-007:** Failed update attempts SHALL be logged and retried
 - **REQ-AUTO-008:** System SHALL support queue workers for processing multiple updates concurrently
 
-#### 3.1.7 RESTful API Endpoints
+#### 3.1.7 Product Mapping Service
+- **REQ-MAP-001:** System SHALL implement a dedicated product mapping service
+- **REQ-MAP-002:** Service SHALL transform scraped data into structured format
+- **REQ-MAP-003:** Service SHALL validate and normalize product data
+- **REQ-MAP-004:** Service SHALL apply business rules for data transformation
+- **REQ-MAP-005:** Service SHALL handle mapping errors gracefully
+- **REQ-MAP-006:** Service SHALL log mapping activities and errors
+- **REQ-MAP-007:** Service SHALL support batch mapping of multiple products
+- **REQ-MAP-008:** Service SHALL extract and normalize pricing information
+- **REQ-MAP-009:** Service SHALL categorize products based on platform and content
+- **REQ-MAP-010:** Service SHALL generate unique product identifiers per platform
+
+#### 3.1.8 RESTful API Endpoints
 - **REQ-API-001:** System SHALL provide comprehensive CRUD endpoints for product management
 - **REQ-API-002:** System SHALL implement GET endpoint `/api/products` for retrieving products
 - **REQ-API-003:** System SHALL implement POST endpoint `/api/products` for creating new watched products
@@ -147,7 +159,19 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-API-009:** Error responses SHALL include descriptive error messages and appropriate HTTP status codes
 - **REQ-API-010:** Validation errors SHALL return 422 status code with detailed field-level errors
 
-#### 3.1.8 Filtering and Pagination
+#### 3.1.8 RESTful API Endpoints
+- **REQ-API-001:** System SHALL provide comprehensive CRUD endpoints for product management
+- **REQ-API-002:** System SHALL implement GET endpoint `/api/products` for retrieving products
+- **REQ-API-003:** System SHALL implement POST endpoint `/api/products` for creating new watched products
+- **REQ-API-004:** System SHALL implement GET endpoint `/api/products/{id}` for retrieving a single product
+- **REQ-API-005:** System SHALL implement PUT/PATCH endpoint `/api/products/{id}` for updating products
+- **REQ-API-006:** System SHALL implement DELETE endpoint `/api/products/{id}` for removing watched products
+- **REQ-API-007:** All endpoints SHALL implement proper data validation
+- **REQ-API-008:** All endpoints SHALL implement comprehensive error handling
+- **REQ-API-009:** Error responses SHALL include descriptive error messages and appropriate HTTP status codes
+- **REQ-API-010:** Validation errors SHALL return 422 status code with detailed field-level errors
+
+#### 3.1.9 Filtering and Pagination
 - **REQ-FILTER-001:** GET `/api/products` endpoint SHALL support filtering by platform (Amazon/Jumia)
 - **REQ-FILTER-002:** GET `/api/products` endpoint SHALL support filtering by price range
 - **REQ-FILTER-003:** GET `/api/products` endpoint SHALL support filtering by product title (search)
@@ -162,7 +186,30 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-FILTER-012:** GET `/api/products` endpoint SHALL support filtering by platform_category
 - **REQ-FILTER-013:** GET `/api/products` endpoint SHALL support filtering by price_currency
 
-#### 3.1.9 Data Validation Requirements
+#### 3.1.9 Filtering and Pagination
+- **REQ-FILTER-001:** GET `/api/products` endpoint SHALL support filtering by platform (Amazon/Jumia)
+- **REQ-FILTER-002:** GET `/api/products` endpoint SHALL support filtering by price range
+- **REQ-FILTER-003:** GET `/api/products` endpoint SHALL support filtering by product title (search)
+- **REQ-FILTER-004:** GET `/api/products` endpoint SHALL support filtering by date range
+- **REQ-FILTER-005:** System SHALL implement cursor-based or offset-based pagination
+- **REQ-FILTER-006:** Pagination SHALL include metadata: total count, current page, per_page, last_page
+- **REQ-FILTER-007:** Default page size SHALL be configurable (recommended: 15-50 items)
+- **REQ-FILTER-008:** System SHALL support custom page size via query parameter
+- **REQ-FILTER-009:** Filtering and pagination SHALL work together seamlessly
+- **REQ-FILTER-010:** API responses SHALL follow consistent JSON structure for paginated data
+- **REQ-FILTER-011:** GET `/api/products` endpoint SHALL support filtering by rating range
+- **REQ-FILTER-012:** GET `/api/products` endpoint SHALL support filtering by platform_category
+- **REQ-FILTER-013:** GET `/api/products` endpoint SHALL support filtering by price_currency
+
+#### 3.1.10 Repository Requirements
+- **REQ-REPO-001:** Repository SHALL implement findById method to retrieve product by ID
+- **REQ-REPO-002:** Repository SHALL implement save method to create or update products
+- **REQ-REPO-003:** Repository SHALL implement delete method to remove products
+- **REQ-REPO-004:** Repository SHALL implement findByUrl method to retrieve product by URL and platform
+- **REQ-REPO-005:** Repository SHALL implement findAllActive method to retrieve active products
+- **REQ-REPO-006:** Repository SHALL implement findProductsNeedingScraping method
+
+#### 3.1.11 Data Validation Requirements
 - **REQ-VAL-001:** Product URL SHALL be validated as required and valid URL format
 - **REQ-VAL-002:** Product URL SHALL be validated to match Amazon or Jumia domain patterns
 - **REQ-VAL-003:** Product title SHALL be required, string type, max 500 characters
@@ -178,7 +225,23 @@ The system is a standalone web application that scrapes product data from eComme
 - **REQ-VAL-013:** Platform category SHALL be optional, string type, max 255 characters
 - **REQ-VAL-014:** Platform ID SHALL be optional, string type, max 255 characters
 
-#### 3.1.10 Integration with Golang Service
+#### 3.1.11 Data Validation Requirements
+- **REQ-VAL-001:** Product URL SHALL be validated as required and valid URL format
+- **REQ-VAL-002:** Product URL SHALL be validated to match Amazon or Jumia domain patterns
+- **REQ-VAL-003:** Product title SHALL be required, string type, max 500 characters
+- **REQ-VAL-004:** Product price SHALL be numeric, positive value, with max 2 decimal places
+- **REQ-VAL-005:** Image URL SHALL be optional, valid URL format when provided
+- **REQ-VAL-006:** Platform field SHALL accept only 'amazon' or 'jumia' values
+- **REQ-VAL-007:** All input data SHALL be sanitized to prevent XSS attacks
+- **REQ-VAL-008:** API SHALL return 400 Bad Request for malformed JSON
+- **REQ-VAL-009:** API SHALL return 422 Unprocessable Entity for validation failures
+- **REQ-VAL-010:** Rating SHALL be optional, numeric value between 0.00 and 5.00
+- **REQ-VAL-011:** Rating count SHALL be optional, non-negative integer
+- **REQ-VAL-012:** Price currency SHALL be optional, valid ISO 4217 currency code (3 characters)
+- **REQ-VAL-013:** Platform category SHALL be optional, string type, max 255 characters
+- **REQ-VAL-014:** Platform ID SHALL be optional, string type, max 255 characters
+
+#### 3.1.12 Integration with Golang Service
 - **REQ-INT-001:** Backend SHALL communicate with Golang proxy service
 - **REQ-INT-002:** System SHALL retrieve active proxies from Golang service
 - **REQ-INT-003:** Integration SHALL handle proxy service unavailability
@@ -190,9 +253,9 @@ The system is a standalone web application that scrapes product data from eComme
 ### 3.2 Golang Microservice Requirements
 
 #### 3.2.1 Proxy Management
-- **REQ-GO-001:** Service SHALL be written in Golang
-- **REQ-GO-002:** Service SHALL maintain a pool of proxy servers
-- **REQ-GO-003:** Service SHALL implement proxy rotation logic
+- **REQ-GO-001 (REQ-PROXY-001):** Service SHALL be written in Golang
+- **REQ-GO-002 (REQ-PROXY-002):** Service SHALL maintain a pool of proxy servers
+- **REQ-GO-003 (REQ-PROXY-003):** Service SHALL implement proxy rotation logic
 - **REQ-GO-004:** Service SHALL validate proxy availability before rotation
 - **REQ-GO-005:** Service SHALL expose HTTP endpoint for proxy retrieval
 - **REQ-GO-006:** Service SHALL return proxy in format: `host:port`
