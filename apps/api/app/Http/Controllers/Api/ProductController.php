@@ -717,7 +717,7 @@ class ProductController extends Controller
                         : 'Product deactivated successfully';
                         
                     return ApiStdResponse::successResponse(
-                        $result['data'],
+                        $result['product'],
                         $message,
                         200
                     );
