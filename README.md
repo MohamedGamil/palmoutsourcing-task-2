@@ -259,17 +259,22 @@ This system provides production-grade solution for tracking product prices and i
    PROXY_SERVICE_PORT=7001
    ```
 
-3. **Build and start containers**
+3. **Build and setup containers (*first time installation only*)**
    ```bash
-   make up-build
+   make install
    ```
 
-4. **Run database migrations and seeders**
+4. **Run containers (*normally after installation*)**
+   ```bash
+   make up
+   ```
+
+5. **Run database migrations and seeders**
    ```bash
    make migrate
    ```
 
-5. **Access the applications**
+6. **Access the applications**
    - Frontend: http://localhost:3001
    - Backend API: http://localhost:8081
    - Proxy Service: http://localhost:7001
